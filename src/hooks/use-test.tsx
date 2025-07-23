@@ -8,9 +8,11 @@ const useUserEmail = (name: string) => {
   useEffect(() => {
     if (!name) return;
     setLoading(true);
-    fetch(`/api/user-by-name?name=${encodeURIComponent(name)}`)
-      .then((res) => res.json())
-      .then((data) => {
+    (async () => {
+      try {
+        // const res = await fetch(`https://new-form-take-home.vercel.app/api/user-by-name?name=Henry`);
+        const res = await fetch(`/api/user-by-name?name=${encodeURIComponent(name)}`);
+        const data = await res.json();
         if (data.email) {
           setEmail(data.email);
           setError(null);
@@ -18,12 +20,18 @@ const useUserEmail = (name: string) => {
           setEmail(null);
           setError(data.error || "User not found");
         }
-      })
-      .catch((err) => {
+      } catch (err: unknown) {
         setEmail(null);
+        if (err instanceof Error) {
+          console.log(`use-test: Error: ${err.message}`);
+        } else {
+          console.log('use-test: Unknown error', err);
+        }
         setError("Fetch error");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [name]);
 
   return { email, loading, error };

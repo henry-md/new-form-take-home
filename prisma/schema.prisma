@@ -14,3 +14,15 @@ model User {
   email String @unique
   name  String?
 }
+
+model ReportConfig {
+  id        Int      @id @default(autoincrement())
+  platform  String
+  metrics   String   // store as comma-separated or JSON string
+  level     String
+  dateRange String
+  cadence   String
+  delivery  String
+  email     String?
+  createdAt DateTime @default(now())
+}
