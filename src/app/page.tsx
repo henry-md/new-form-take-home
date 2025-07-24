@@ -1,22 +1,23 @@
 "use client";
 
 import { ReportConfigForm, type FormValues } from "@/components/ReportConfigForm";
-// import useUserEmail from "@/hooks/use-test";
-// import useHello from "@/hooks/use-hello";
+import { useReportData } from "@/hooks/use-report-data";
 
 export default function Home() {
-  // const { email, loading, error } = useUserEmail("Henry");
-  // const { loading: helloLoading, text } = useHello();
+  const { fetchReportData, loading, data, error } = useReportData();
 
-  const handleSubmit = (data: FormValues) => {
-    console.log('data:', data);
+  const handleSubmit = async (formData: FormValues) => {
+    console.log('Form data:', formData);
+    await fetchReportData(formData);
+    console.log('Response data:', data);
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen w-full p-0 mx-auto">
-      {/* <div>Email: {loading ? "Loading..." : error ? error : email}</div>
-      <div>{helloLoading ? "Loading..." : text}</div> */}
       <ReportConfigForm onSubmit={handleSubmit} />
+      
+      {loading && <div className="mt-4">Loading...</div>}
+      {error && <div className="mt-4 text-red-500">Error: {error}</div>}
     </div>
   );
 }

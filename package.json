@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "test": "node test.js"
+    "test-tiktok": "node tests/api/tiktok.ts",
+    "test-meta": "node tests/api/meta.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

@@ -1,48 +1,51 @@
 import fetch from "node-fetch";
 
-const BASE_URL = "https://bizdev.newform.ai/sample-data/tiktok";
+const BASE_URL = "https://bizdev.newform.ai/sample-data/meta";
 const AUTH_HEADER = "NEWFORMCODINGCHALLENGE";
 
 const metricsList = [
   "spend",
-  "impressions",
+  "impressions", 
   "clicks",
-  "conversions",
-  "cost_per_conversion",
-  "conversion_rate",
   "ctr",
   "cpc",
   "reach",
   "frequency",
-  "skan_app_install",
-  "skan_cost_per_app_install",
-  "skan_purchase",
-  "skan_cost_per_purchase",
-];
-const dimensionsList = [
-  "ad_id",
-  "campaign_id",
-  "adgroup_id",
-  "advertiser_id",
-  "stat_time_day",
-  "campaign_name",
-  "adgroup_name",
-  "ad_name",
-  "country_code",
-  "age",
-  "gender",
-  "province_id",
-  "dma_id",
-];
-const levelList = ["AUCTION_ADVERTISER", "AUCTION_AD", "AUCTION_CAMPAIGN"];
-const dateRangeEnumList = ["last7", "last14", "last30", "lifetime"];
-const reportTypeList = ["BASIC", "AUDIENCE"];
+  "conversions",
+  "cost_per_conversion",
+  "convrersion_rate",
+  "actions",
+  "cost_per_action_type",
+] as const;
 
-function getCombinations(arr, min = 1, max = 3) {
-  // Returns all combinations of arr with length between min and max
-  const results = [];
+const levelList = ["account", "campaign", "adset", "ad"] as const;
+
+const breakdownsList = [
+  "age",
+  "gender", 
+  "country",
+  "region",
+  "dma",
+  "impression_device",
+  "platform_position",
+  "publisher_platform",
+] as const;
+
+const timeIncrementList = ["1", "7", "28", "monthly", "quarterly", "yearly", "all_days"] as const;
+const dateRangeEnumList = ["last7", "last14", "last30", "lifetime"] as const;
+
+type MetaRequestBody = {
+  metrics: string[];
+  level: string;
+  breakdowns: string[];
+  timeIncrement?: string;
+  dateRangeEnum: string;
+};
+
+function getCombinations<T>(arr: readonly T[], min = 1, max = 3): T[][] {
+  const results: T[][] = [];
   for (let len = min; len <= max; len++) {
-    const combine = (start, combo) => {
+    const combine = (start: number, combo: T[]): void => {
       if (combo.length === len) {
         results.push(combo);
         return;
@@ -56,20 +59,18 @@ function getCombinations(arr, min = 1, max = 3) {
   return results;
 }
 
-// Add delay function
-function delay(ms) {
+function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Test single request first
-async function testSingleRequest() {
-  console.log("Testing single request first...");
-  const testBody = {
+async function testSingleRequest(): Promise<boolean> {
+  console.log("Testing single Meta request first...");
+  const testBody: MetaRequestBody = {
     metrics: ["spend"],
-    dimensions: ["ad_id"],
-    level: "AUCTION_ADVERTISER",
+    level: "campaign",
+    breakdowns: ["age"],
+    timeIncrement: "7",
     dateRangeEnum: "last7",
-    reportType: "BASIC",
   };
 
   try {
@@ -87,53 +88,52 @@ async function testSingleRequest() {
     console.log(`Response: ${responseText}`);
 
     if (res.ok) {
-      console.log("✅ Single request successful!");
+      console.log("✅ Single Meta request successful!");
       return true;
     } else {
-      console.log("❌ Single request failed");
+      console.log("❌ Single Meta request failed");
       return false;
     }
   } catch (e) {
-    console.error("❌ Single request error:", e.message);
+    console.error("❌ Single Meta request error:", e instanceof Error ? e.message : 'Unknown error');
     return false;
   }
 }
 
-async function testTikTokApi() {
-  // Test single request first
+async function testMetaApi(): Promise<void> {
   const singleTestPassed = await testSingleRequest();
   if (!singleTestPassed) {
     console.log("Stopping full test due to single request failure");
     return;
   }
 
-  console.log("\nStarting full test...");
+  console.log("\nStarting full Meta test...");
 
-  const metricsCombos = getCombinations(metricsList, 1, 2); // keep small for demo
-  const dimensionsCombos = getCombinations(dimensionsList, 1, 2); // keep small for demo
+  const metricsCombos = getCombinations(metricsList, 1, 2);
+  const breakdownsCombos = getCombinations(breakdownsList, 1, 2);
 
   console.log(`Testing ${metricsCombos.length} metrics combinations`);
-  console.log(`Testing ${dimensionsCombos.length} dimensions combinations`);
+  console.log(`Testing ${breakdownsCombos.length} breakdowns combinations`);
   console.log(`Testing ${levelList.length} levels`);
   console.log(`Testing ${dateRangeEnumList.length} date ranges`);
-  console.log(`Testing ${reportTypeList.length} report types`);
+  console.log(`Testing ${timeIncrementList.length} time increments`);
 
   const totalCombinations =
     metricsCombos.length *
-    dimensionsCombos.length *
+    breakdownsCombos.length *
     levelList.length *
     dateRangeEnumList.length *
-    reportTypeList.length;
+    timeIncrementList.length;
   console.log(`Total combinations to test: ${totalCombinations}`);
-  console.log("Starting tests...\n");
+  console.log("Starting Meta tests...\n");
 
   let processedCount = 0;
 
   for (const level of levelList) {
     for (const metrics of metricsCombos) {
-      for (const dimensions of dimensionsCombos) {
+      for (const breakdowns of breakdownsCombos) {
         for (const dateRangeEnum of dateRangeEnumList) {
-          for (const reportType of reportTypeList) {
+          for (const timeIncrement of timeIncrementList) {
             processedCount++;
 
             if (processedCount % 10 === 0) {
@@ -143,12 +143,12 @@ async function testTikTokApi() {
                 )}%)`
               );
             }
-            const body = {
+            const body: MetaRequestBody = {
               metrics,
-              dimensions,
               level,
+              breakdowns,
+              timeIncrement,
               dateRangeEnum,
-              reportType,
             };
             try {
               const res = await fetch(BASE_URL, {
@@ -160,7 +160,6 @@ async function testTikTokApi() {
                 body: JSON.stringify(body),
               });
 
-              // Check if response is ok
               if (!res.ok) {
                 const errorText = await res.text();
                 console.error(
@@ -170,8 +169,7 @@ async function testTikTokApi() {
                 continue;
               }
 
-              const data = await res.json();
-              // Only log if data contains non-empty array or non-empty string fields
+              const data: unknown = await res.json();
               if (data && typeof data === "object") {
                 const hasNonEmptyArray = Object.values(data).some(
                   (v) => Array.isArray(v) && v.length > 0
@@ -186,10 +184,9 @@ async function testTikTokApi() {
                 }
               }
 
-              // Add delay to avoid rate limiting
-              await delay(100); // 100ms delay between requests
+              await delay(100);
             } catch (e) {
-              console.error("Error for input", body, e.message);
+              console.error("Error for input", body, e instanceof Error ? e.message : 'Unknown error');
             }
           }
         }
@@ -200,4 +197,4 @@ async function testTikTokApi() {
   console.log(`\nCompleted! Processed ${processedCount} combinations.`);
 }
 
-testTikTokApi();
+testMetaApi();
