@@ -10,7 +10,8 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "test-tiktok": "node tests/api/tiktok.ts",
-    "test-meta": "node tests/api/meta.ts"
+    "test-meta": "node tests/api/meta.ts",
+    "test-email": "tsx tests/test-email.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -25,6 +26,7 @@
     "next": "15.4.2",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.9.13",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.60.0",
@@ -35,12 +37,15 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.14",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.2",
     "prisma": "^6.12.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.3",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"
   }
