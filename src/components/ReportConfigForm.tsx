@@ -133,28 +133,39 @@ const ReportConfigForm = ({
             <FormField
               control={form.control}
               name="metrics"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Metrics</FormLabel>
-                  <FormControl>
-                    <div className="flex flex-wrap gap-2">
-                      {metricsOptions.map((metric) => (
-                        <Checkbox
-                          key={metric}
-                          checked={field.value?.includes(metric)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              field.onChange([...field.value, metric]);
-                            } else {
-                              field.onChange(field.value.filter((m: string) => m !== metric));
-                            }
-                          }}
-                        >
-                          {metric}
-                        </Checkbox>
-                      ))}
-                    </div>
-                  </FormControl>
+                  <div className="grid grid-cols-2 gap-4">
+                    {metricsOptions.map((metric) => (
+                      <FormField
+                        key={metric}
+                        control={form.control}
+                        name="metrics"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(metric)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...field.value, metric])
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (value) => value !== metric
+                                        )
+                                      )
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-normal">
+                              {metric}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
