@@ -3,24 +3,12 @@ import { PrismaClient } from '@prisma/client';
 import { sendEmail, createReportEmail } from './email';
 import { fetchReportData } from './api-client';
 import { ReportParams } from '@/types/report';
+import { DbReportConfig } from '@/types/report';
 
 const prisma = new PrismaClient();
 
 // Store active cron jobs in memory
 const activeJobs = new Map<number, cron.ScheduledTask>();
-
-// Database config type (what Prisma returns)
-export interface DbReportConfig {
-  id: number;
-  platform: string;
-  metrics: string;
-  level: string;
-  dateRange: string;
-  cadence: string;
-  delivery: string;
-  email?: string | null;
-  createdAt?: Date;
-}
 
 // Convert cadence to cron expression
 const getCronExpression = (cadence: string): string => {
@@ -92,7 +80,7 @@ const generateAndSendReport = async (config: DbReportConfig) => {
 export const scheduleCronJob = async (configId: number) => {
   try {
     // Get the config from database
-    const config = await prisma.reportConfig.findUnique({
+    const config: DbReportConfig | null = await prisma.reportConfig.findUnique({
       where: { id: configId }
     });
     

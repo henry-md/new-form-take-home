@@ -41,6 +41,7 @@ const dateRanges = [
   { value: "last7", label: "Last 7 Days" },
   { value: "last14", label: "Last 14 Days" },
   { value: "last30", label: "Last 30 Days" },
+  { value: "custom", label: "Custom Range" },
 ];
 
 const cadences = [
@@ -60,13 +61,28 @@ const formSchema = z.object({
   platform: z.enum(["meta", "tiktok"]),
   metrics: z.array(z.string()).min(1, "Select at least one metric"),
   level: z.string().min(1, "Level is required"),
-  dateRange: z.enum(["last7", "last14", "last30"]),
+  dateRange: z.enum(["last7", "last14", "last30", "custom"]),
+  customDateRange: z.object({
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
+  }).optional(),
   cadence: z.enum(["manual", "hourly", "every12h", "daily"]),
   delivery: z.enum(["email", "link"]),
   email: z.string().email("Invalid email").optional(),
 }).refine(
   (data) => data.delivery === "link" || !!data.email,
   { message: "Email is required if delivery is email", path: ["email"] }
+).refine(
+  (data) => data.dateRange !== "custom" || !!data.customDateRange,
+  { message: "Custom date range is required when Custom Range is selected", path: ["customDateRange"] }
+).refine(
+  (data) => {
+    if (data.dateRange === "custom" && data.customDateRange) {
+      return new Date(data.customDateRange.from) <= new Date(data.customDateRange.to);
+    }
+    return true;
+  },
+  { message: "From date must be before or equal to To date", path: ["customDateRange"] }
 );
 
 type FormValues = z.infer<typeof formSchema>;
@@ -95,6 +111,7 @@ const ReportConfigForm = ({
 
   const platform = form.watch("platform");
   const delivery = form.watch("delivery");
+  const dateRange = form.watch("dateRange");
 
   const metricsOptions = platform === "meta" ? metaMetrics : tiktokMetrics;
   const levelOptions = platform === "meta" ? metaLevels : tiktokLevels;
@@ -220,6 +237,49 @@ const ReportConfigForm = ({
                 </FormItem>
               )}
             />
+
+            {dateRange === "custom" && (
+              <FormField
+                control={form.control}
+                name="customDateRange"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Custom Date Range</FormLabel>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <FormLabel className="text-sm text-gray-600">From</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            value={field.value?.from || ""}
+                            onChange={(e) => field.onChange({
+                              ...field.value,
+                              from: e.target.value
+                            })}
+                            placeholder="YYYY-MM-DD"
+                          />
+                        </FormControl>
+                      </div>
+                      <div>
+                        <FormLabel className="text-sm text-gray-600">To</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            value={field.value?.to || ""}
+                            onChange={(e) => field.onChange({
+                              ...field.value,
+                              to: e.target.value
+                            })}
+                            placeholder="YYYY-MM-DD"
+                          />
+                        </FormControl>
+                      </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
