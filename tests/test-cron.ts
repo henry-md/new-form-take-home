@@ -19,7 +19,7 @@ const testCronJobScheduling = async () => {
         metrics: 'spend,impressions',
         level: 'campaign',
         dateRange: 'last7',
-        cadence: 'test-minute', // Set to run every minute
+        cadence: 'every_minute', // For testing
         delivery: 'email',
         email: TEST_EMAIL,
       },

@@ -7,12 +7,13 @@ import { DbReportConfig } from '@/types/report';
 
 const prisma = new PrismaClient();
 
-// Store active cron jobs in memory
+// Store active cron jobs in memory, mapping db id to cron.ScheduledTask object
 const activeJobs = new Map<number, cron.ScheduledTask>();
 
 // Convert cadence to cron expression
 const getCronExpression = (cadence: string): string => {
   switch (cadence) {
+    case 'every_minute':
     case 'test-minute':
       return '* * * * *'; // Every minute for testing
     case 'hourly':
@@ -31,7 +32,7 @@ const getCronExpression = (cadence: string): string => {
 // Use the info returned by the api to send email or generate link
 const generateAndSendReport = async (config: DbReportConfig) => {
   try {
-    console.log(`Generating reportConfig with id ${config.id}`);
+    console.log(`Generating report for config ID: ${config.id}`);
     
     // Convert DB config to API params and fetch data
     const reportParams: ReportParams = {
@@ -76,7 +77,7 @@ const generateAndSendReport = async (config: DbReportConfig) => {
   }
 };
 
-// Schedule a cron job for a report config
+// Schedule or restart a cron job that exists in the database
 export const scheduleCronJob = async (configId: number) => {
   try {
     // Get the config from database
@@ -88,7 +89,7 @@ export const scheduleCronJob = async (configId: number) => {
       throw new Error(`Report config with ID ${configId} not found`);
     }
     
-    // Stop existing job if any
+    // Delete cron job locally in activeJobs map
     stopCronJob(configId);
     
     if (config.cadence === 'manual') {
@@ -162,7 +163,7 @@ export const initializeCronJobs = async () => {
       await scheduleCronJob(config.id);
     }
     
-    console.log(`Initialized ${configs.length} active cron jobs on server restart`);
+    console.log(`Initialized ${configs.length} cron jobs`);
   } catch (error) {
     console.error('Error initializing cron jobs:', error);
   }
@@ -182,6 +183,7 @@ export const getCronJobsStatus = () => {
 if (process.env.NODE_ENV === 'production' || process.env.INIT_CRON === 'true') {
   try {
     await initializeCronJobs();
+    console.log('Cron jobs initialized');
   } catch (error) {
     console.error('Error initializing cron jobs:', error);
   }

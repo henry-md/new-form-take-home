@@ -46,6 +46,7 @@ const dateRanges = [
 
 const cadences = [
   { value: "manual", label: "Manual" },
+  { value: "every_minute", label: "Every Minute" },
   { value: "hourly", label: "Hourly" },
   { value: "every12h", label: "Every 12 Hours" },
   { value: "daily", label: "Daily" },
@@ -66,7 +67,7 @@ const formSchema = z.object({
     from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
     to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
   }).optional(),
-  cadence: z.enum(["manual", "hourly", "every12h", "daily"]),
+  cadence: z.enum(["manual", "hourly", "every12h", "daily", "every_minute"]),
   delivery: z.enum(["email", "link"]),
   email: z.string().email("Invalid email").optional(),
 }).refine(

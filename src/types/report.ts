@@ -8,7 +8,7 @@ export interface ReportParams {
     from: string;  // YYYY-MM-DD
     to: string;    // YYYY-MM-DD
   };
-  cadence: "manual" | "hourly" | "every12h" | "daily";
+  cadence: "manual" | "hourly" | "every12h" | "daily" | "every_minute";
   delivery: "email" | "link";
   email?: string;
 }

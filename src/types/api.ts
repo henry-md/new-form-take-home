@@ -4,7 +4,7 @@ export interface BaseApi {
     from: string;  // YYYY-MM-DD
     to: string;    // YYYY-MM-DD
   };
-  cadence: "manual" | "hourly" | "every12h" | "daily";
+  cadence: "manual" | "every_minute" | "hourly" | "every12h" | "daily";
   delivery: "email" | "link";
   email?: string;
 }
