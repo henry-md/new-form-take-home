@@ -21,8 +21,8 @@ model ReportConfig {
   metrics         String   // store as comma-separated or JSON string
   level           String
   dateRange       String   // "last7", "last14", "last30", "lifetime", "custom"
-  customDateFrom  String?  // YYYY-MM-DD format, only used when dateRange = "custom"
-  customDateTo    String?  // YYYY-MM-DD format, only used when dateRange = "custom"
+  customDateFrom  DateTime?
+  customDateTo    DateTime?
   cadence         String
   delivery        String
   email           String?
