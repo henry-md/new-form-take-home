@@ -13,7 +13,6 @@ export const useReports = () => {
     try {
       const response = await fetch('/api/reports');
       const data: { reportConfigs: DbReportConfig[] } = await response.json();
-      console.log('use-reports.tsx: data', data);
       if (response.ok) {
         const configsWithDates = data.reportConfigs.map(config => ({
           ...config,

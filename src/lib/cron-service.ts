@@ -31,7 +31,7 @@ const getCronExpression = (cadence: string): string => {
 // Use the info returned by the api to send email or generate link
 const generateAndSendReport = async (config: DbReportConfig) => {
   try {
-    console.log(`Generating report for config ID: ${config.id}`);
+    console.log(`Generating reportConfig with id ${config.id}`);
     
     // Convert DB config to API params and fetch data
     const reportParams: ReportParams = {
@@ -162,7 +162,7 @@ export const initializeCronJobs = async () => {
       await scheduleCronJob(config.id);
     }
     
-    console.log(`Initialized ${configs.length} cron jobs`);
+    console.log(`Initialized ${configs.length} active cron jobs on server restart`);
   } catch (error) {
     console.error('Error initializing cron jobs:', error);
   }
@@ -182,7 +182,6 @@ export const getCronJobsStatus = () => {
 if (process.env.NODE_ENV === 'production' || process.env.INIT_CRON === 'true') {
   try {
     await initializeCronJobs();
-    console.log('Cron jobs initialized');
   } catch (error) {
     console.error('Error initializing cron jobs:', error);
   }

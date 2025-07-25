@@ -23,9 +23,9 @@ const useUserEmail = (name: string) => {
       } catch (err: unknown) {
         setEmail(null);
         if (err instanceof Error) {
-          console.log(`use-test: Error: ${err.message}`);
+          console.log(`Error: ${err.message}`);
         } else {
-          console.log('use-test: Unknown error', err);
+          console.log('Unknown error', err);
         }
         setError("Fetch error");
       } finally {

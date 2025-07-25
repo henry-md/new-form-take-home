@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { scheduleCronJob, stopCronJob } from '@/lib/cron-service';
-import { DbReportConfig } from '@/types/report';
+import { DbReportConfig, DbReportConfigInput } from '@/types/report';
 
 const prisma = new PrismaClient();
 
 // Create a new report configuration
 export async function POST(request: Request) {
   try {
+    // Get stringified values from form in body
     const body = await request.json();
-    console.log('reports/route.ts: body:', body);
+    console.log('Creating a new report with form values:', body);
     const { platform, metrics, level, dateRange, customDateRange, cadence, delivery, email } = body;
     
     // Validate required fields
@@ -35,21 +36,28 @@ export async function POST(request: Request) {
     }
     
     // Create the report config
-    const reportConfig = await prisma.reportConfig.create({
+    const reportConfigInput: DbReportConfigInput = {
+      platform,
+      metrics: Array.isArray(metrics) ? metrics.join(',') : metrics,
+      level,
+      dateRange,
+      cadence,
+      delivery,
+      email: delivery === 'email' ? email : null,
+      ...(dateRange === 'custom' && customDateRange && customDateRange.from && customDateRange.to && {
+        customDateFrom: new Date(customDateRange.from),
+        customDateTo: new Date(customDateRange.to)
+      })
+    };
+
+    const reportConfig: DbReportConfig = await prisma.reportConfig.create({
       data: {
-        platform,
-        metrics: Array.isArray(metrics) ? metrics.join(',') : metrics,
-        level,
-        dateRange,
-        cadence,
-        delivery,
-        email: delivery === 'email' ? email : null,
-        ...(dateRange === 'custom' && customDateRange && customDateRange.from && customDateRange.to && {
-          customDateFrom: new Date(customDateRange.from),
-          customDateTo: new Date(customDateRange.to)
-        })
+        ...reportConfigInput,
+        createdAt: new Date()
       }
     });
+
+    console.log('Created report config in database [type DbReportConfig]:', reportConfig);
     
     // Schedule the cron job if not manual
     if (cadence !== 'manual') {

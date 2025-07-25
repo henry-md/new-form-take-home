@@ -11,7 +11,10 @@ export interface ReportParams {
   cadence: "manual" | "hourly" | "every12h" | "daily";
   delivery: "email" | "link";
   email?: string;
-} 
+}
+
+// Input type for creating a report config in the DB
+export type DbReportConfigInput = Omit<DbReportConfig, "id" | "createdAt">;
 
 // Database config type (what Prisma returns)
 export interface DbReportConfig {
