@@ -16,13 +16,15 @@ model User {
 }
 
 model ReportConfig {
-  id        Int      @id @default(autoincrement())
-  platform  String
-  metrics   String   // store as comma-separated or JSON string
-  level     String
-  dateRange String
-  cadence   String
-  delivery  String
-  email     String?
-  createdAt DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  platform        String
+  metrics         String   // store as comma-separated or JSON string
+  level           String
+  dateRange       String   // "last7", "last14", "last30", "lifetime", "custom"
+  customDateFrom  String?  // YYYY-MM-DD format, only used when dateRange = "custom"
+  customDateTo    String?  // YYYY-MM-DD format, only used when dateRange = "custom"
+  cadence         String
+  delivery        String
+  email           String?
+  createdAt       DateTime @default(now())
 }

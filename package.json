@@ -11,7 +11,8 @@
     "postinstall": "prisma generate",
     "test-tiktok": "node tests/api/tiktok.ts",
     "test-meta": "node tests/api/meta.ts",
-    "test-email": "tsx tests/test-email.ts"
+    "test-email": "tsx tests/test-email.ts",
+    "test-cron": "tsx tests/test-cron.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
