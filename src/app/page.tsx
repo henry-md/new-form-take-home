@@ -109,6 +109,7 @@ export default function Home() {
                         )}
                       </div>
                       
+                      {/* Show active reports */}
                       {config.cadence !== 'manual' && (
                         <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-800">
                           🕒 Scheduled: {formatCadence(config.cadence)}

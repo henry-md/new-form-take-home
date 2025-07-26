@@ -37,8 +37,8 @@ const generateAndSendReport = async (config: DbReportConfig) => {
     // Convert DB config to API params and fetch data
     const reportParams: ReportParams = {
       platform: config.platform as ReportParams['platform'],
-      metrics: config.metrics.split(','),
-      level: config.level,
+      metrics: config.metrics.split(',') as ReportParams['metrics'],
+      level: config.level as ReportParams['level'],
       dateRangeEnum: config.dateRangeEnum as ReportParams['dateRangeEnum'],
       cadence: config.cadence as ReportParams['cadence'],
       delivery: config.delivery as ReportParams['delivery'],

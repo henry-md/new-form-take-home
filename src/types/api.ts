@@ -1,16 +1,17 @@
 export interface BaseApi {
-  dateRangeEnum?: "last7" | "last14" | "last30" | "lifetime" | "custom";
-  customDateRange?: {
-    from: string;  // YYYY-MM-DD
-    to: string;    // YYYY-MM-DD
+  dateRangeEnum?: (
+    | "last7"
+    | "last14"
+    | "last30"
+    | "lifetime"
+  );
+  dateRange?: {
+    from: string;
+    to: string;
   };
-  cadence: "manual" | "every_minute" | "hourly" | "every12h" | "daily";
-  delivery: "email" | "link";
-  email?: string;
 }
 
 export interface TikTokApi extends BaseApi {
-  platform: "tiktok";
   metrics: (
     | "spend"
     | "impressions" 
@@ -47,11 +48,13 @@ export interface TikTokApi extends BaseApi {
     | "AUCTION_AD"
     | "AUCTION_CAMPAIGN"
   );
-  reportType?: "BASIC" | "AUDIENCE";
+  reportType?: (
+    | "BASIC"
+    | "AUDIENCE"
+  );
 }
 
 export interface MetaApi extends BaseApi {
-  platform: "meta";
   metrics: (
     | "spend"
     | "impressions"
@@ -90,7 +93,7 @@ export interface MetaApi extends BaseApi {
     | "quarterly"
     | "yearly"
     | "all_days"
-  )[];
+  );
 }
 
 export type ApiPayload = TikTokApi | MetaApi;

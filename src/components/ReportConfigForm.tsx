@@ -16,13 +16,19 @@ const platforms = [
   { value: "tiktok", label: "TikTok" },
 ] as const; // infer most specific type possible — strings become literal types, not just strings.
 
+const tiktokMetrics = [
+  "spend", "impressions", "clicks", "conversions", "cost_per_conversion",
+  "conversion_rate", "ctr", "cpc", "reach", "frequency"
+];
 const metaMetrics = [
   "spend", "impressions", "clicks", "ctr", "conversions",
   "cost_per_conversion", "reach", "frequency"
 ];
-const tiktokMetrics = [
-  "spend", "impressions", "clicks", "conversions", "cost_per_conversion",
-  "conversion_rate", "ctr", "cpc", "reach", "frequency"
+
+const tiktokLevels = [
+  { value: "AUCTION_ADVERTISER", label: "Advertiser" },
+  { value: "AUCTION_AD", label: "Ad" },
+  { value: "AUCTION_CAMPAIGN", label: "Campaign" },
 ];
 
 const metaLevels = [
@@ -30,11 +36,6 @@ const metaLevels = [
   { value: "campaign", label: "Campaign" },
   { value: "adset", label: "Ad Set" },
   { value: "ad", label: "Ad" },
-];
-const tiktokLevels = [
-  { value: "AUCTION_ADVERTISER", label: "Advertiser" },
-  { value: "AUCTION_AD", label: "Ad" },
-  { value: "AUCTION_CAMPAIGN", label: "Campaign" },
 ];
 
 const dateRanges = [
@@ -63,29 +64,30 @@ const formSchema = z.object({
   metrics: z.array(z.string()).min(1, "Select at least one metric"),
   level: z.string().min(1, "Level is required"),
   dateRangeEnum: z.enum(["last7", "last14", "last30", "custom"]),
-  customDateRange: z.object({
+  dateRange: z.object({
     from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
     to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
   }).optional(),
-  cadence: z.enum(["manual", "hourly", "every12h", "daily", "every_minute"]),
+  cadence: z.enum(["manual", "every_minute", "hourly", "every12h", "daily"]),
   delivery: z.enum(["email", "link"]),
   email: z.string().email("Invalid email").optional(),
 }).refine(
   (data) => data.delivery === "link" || !!data.email,
   { message: "Email is required if delivery is email", path: ["email"] }
 ).refine(
-  (data) => data.dateRangeEnum !== "custom" || !!data.customDateRange,
-  { message: "Custom date range is required when Custom Range is selected", path: ["customDateRange"] }
+  (data) => data.dateRangeEnum !== "custom" || !!data.dateRange,
+  { message: "Custom date range is required when Custom Range is selected", path: ["dateRange"] }
 ).refine(
   (data) => {
-    if (data.dateRangeEnum === "custom" && data.customDateRange) {
-      return new Date(data.customDateRange.from) <= new Date(data.customDateRange.to);
+    if (data.dateRangeEnum === "custom" && data.dateRange) {
+      return new Date(data.dateRange.from) <= new Date(data.dateRange.to);
     }
     return true;
   },
-  { message: "From date must be before or equal to To date", path: ["customDateRange"] }
+  { message: "From date must be before or equal to To date", path: ["dateRange"] }
 );
 
+// Should be typecast-able to ReportParams
 type FormValues = z.infer<typeof formSchema>;
 
 const ReportConfigForm = ({
@@ -103,6 +105,7 @@ const ReportConfigForm = ({
       metrics: [],
       level: "",
       dateRangeEnum: "last7",
+      dateRange: undefined,
       cadence: "manual",
       delivery: "email",
       email: "",
@@ -242,7 +245,7 @@ const ReportConfigForm = ({
             {dateRangeEnum === "custom" && (
               <FormField
                 control={form.control}
-                name="customDateRange"
+                name="dateRange"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Custom Date Range</FormLabel>

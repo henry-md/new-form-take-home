@@ -2,38 +2,30 @@ import type { ApiPayload, TikTokApi, MetaApi } from '@/types/api';
 import type { ReportParams } from '@/types/report';
 
 export const fetchReportData = async (report: ReportParams) => {
-  let payload: ApiPayload;
+  // let apiPayload: { [key: string]: any };
+  let apiPayload: ApiPayload;
 
   if (report.platform === 'tiktok') {
-    payload = {
-      platform: "tiktok",
-      metrics: report.metrics as TikTokApi['metrics'],
+    apiPayload = {
+      metrics: report.metrics,
       dimensions: ["stat_time_day"],
-      level: report.level as TikTokApi['level'],
+      level: report.level as TikTokApi["level"],
       reportType: "BASIC",
-      cadence: report.cadence || "manual",
-      delivery: report.delivery || "email",
-      email: report.email,
-      // Conditionally add either dateRangeEnum OR customDateRange
-      ...(report.customDateRange 
-        ? { customDateRange: report.customDateRange }
-        : { dateRangeEnum: report.dateRangeEnum || "last7" }
+      ...(report.dateRangeEnum === "custom"
+        ? { dateRange: report.dateRange }
+        : { dateRangeEnum: report.dateRangeEnum }
       )
     };
-  } else {
-    payload = {
-      platform: "meta",
-      metrics: report.metrics as MetaApi['metrics'],
-      level: report.level as MetaApi['level'],
+  } else { 
+    // Meta
+    apiPayload = {
+      metrics: report.metrics,
+      level: report.level as MetaApi["level"],
       breakdowns: ["age"],
-      timeIncrement: ["7"] as MetaApi['timeIncrement'],
-      cadence: report.cadence || "manual",
-      delivery: report.delivery || "email", 
-      email: report.email,
-      // Conditionally add either dateRangeEnum OR customDateRange
-      ...(report.customDateRange
-        ? { customDateRange: report.customDateRange }
-        : { dateRangeEnum: report.dateRangeEnum || "last7" }
+      timeIncrement: "7",
+      ...(report.dateRangeEnum === "custom"
+        ? { dateRange: report.dateRange }
+        : { dateRangeEnum: report.dateRangeEnum }
       )
     };
   }
@@ -44,7 +36,7 @@ export const fetchReportData = async (report: ReportParams) => {
       'Content-Type': 'application/json',
       'Authorization': 'NEWFORMCODINGCHALLENGE'
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(apiPayload)
   });
   
   return await response.json();

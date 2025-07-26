@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: ReportParams = await request.json();
     console.log('Creating a new report with form values:', body);
-    const { platform, metrics, level, dateRangeEnum, customDateRange, cadence, delivery, email } = body;
+    const { platform, metrics, level, dateRangeEnum, dateRange, cadence, delivery, email } = body;
     
     // Validate required fields
     if (!platform || !metrics || !level || !dateRangeEnum || !cadence || !delivery) {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    if (dateRangeEnum === 'custom' && (!customDateRange || !customDateRange.from || !customDateRange.to)) {
+    if (dateRangeEnum === 'custom' && (!dateRange || !dateRange.from || !dateRange.to)) {
       return NextResponse.json(
         { error: 'Custom date range requires from and to dates' },
         { status: 400 }
@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
       cadence,
       delivery,
       email: delivery === 'email' ? email : null,
-      ...(dateRangeEnum === 'custom' && customDateRange && customDateRange.from && customDateRange.to && {
-        customDateFrom: new Date(customDateRange.from),
-        customDateTo: new Date(customDateRange.to)
+      ...(dateRangeEnum === 'custom' && dateRange && dateRange.from && dateRange.to && {
+        customDateFrom: new Date(dateRange.from),
+        customDateTo: new Date(dateRange.to)
       })
     };
 
