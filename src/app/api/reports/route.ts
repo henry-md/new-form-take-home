@@ -2,26 +2,27 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { scheduleCronJob, stopCronJob } from '@/lib/cron-service';
 import { DbReportConfig, DbReportConfigInput } from '@/types/report';
+import { NextRequest } from 'next/server';
+import { ReportParams } from '@/types/report';
 
 const prisma = new PrismaClient();
 
 // Create a new report configuration
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Get stringified values from form in body
-    const body = await request.json();
+    const body: ReportParams = await request.json();
     console.log('Creating a new report with form values:', body);
-    const { platform, metrics, level, dateRange, customDateRange, cadence, delivery, email } = body;
+    const { platform, metrics, level, dateRangeEnum, customDateRange, cadence, delivery, email } = body;
     
     // Validate required fields
-    if (!platform || !metrics || !level || !dateRange || !cadence || !delivery) {
+    if (!platform || !metrics || !level || !dateRangeEnum || !cadence || !delivery) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
     
-    if (dateRange === 'custom' && (!customDateRange || !customDateRange.from || !customDateRange.to)) {
+    if (dateRangeEnum === 'custom' && (!customDateRange || !customDateRange.from || !customDateRange.to)) {
       return NextResponse.json(
         { error: 'Custom date range requires from and to dates' },
         { status: 400 }
@@ -40,21 +41,21 @@ export async function POST(request: Request) {
       platform,
       metrics: Array.isArray(metrics) ? metrics.join(',') : metrics,
       level,
-      dateRange,
+      dateRangeEnum,
       cadence,
       delivery,
       email: delivery === 'email' ? email : null,
-      ...(dateRange === 'custom' && customDateRange && customDateRange.from && customDateRange.to && {
+      ...(dateRangeEnum === 'custom' && customDateRange && customDateRange.from && customDateRange.to && {
         customDateFrom: new Date(customDateRange.from),
         customDateTo: new Date(customDateRange.to)
       })
     };
 
     const reportConfig: DbReportConfig = await prisma.reportConfig.create({
-      data: {
-        ...reportConfigInput,
-        createdAt: new Date()
-      }
+      data: reportConfigInput,
+      include: {
+        generatedReports: true,
+      },
     });
 
     console.log('Created report config in database [type DbReportConfig]:', reportConfig);
@@ -82,13 +83,25 @@ export async function POST(request: Request) {
 // Get all report configurations
 export async function GET() {
   try {
-    const reportConfigs: DbReportConfig[] = await prisma.reportConfig.findMany({
-      orderBy: { createdAt: 'desc' }
+    const configs = await prisma.reportConfig.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        generatedReports: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { id: true },
+        },
+      },
     });
-    
-    return NextResponse.json({ reportConfigs });
+
+    const configsWithLatestReport = configs.map(config => ({
+      ...config,
+      latestReportId: config.generatedReports.length > 0 ? config.generatedReports[0].id : null,
+    }));
+
+    return NextResponse.json(configsWithLatestReport);
   } catch (error) {
-    console.error('Error fetching report configs:', error);
+    console.error('Failed to fetch report configs:', error);
     return NextResponse.json(
       { error: 'Failed to fetch report configurations' },
       { status: 500 }

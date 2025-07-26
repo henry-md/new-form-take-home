@@ -35,7 +35,7 @@ export const sendEmail = async ({ to, subject, html }: EmailConfig) => {
   }
 };
 
-export const createReportEmail = (data: { platform?: string; dateRange?: string; data?: unknown }) => {
+export const createReportEmail = (data: { platform?: string; dateRangeEnum?: string; data?: unknown }) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -60,7 +60,7 @@ export const createReportEmail = (data: { platform?: string; dateRange?: string;
           <div class="metrics">
             <h3>Key Metrics</h3>
             <p><strong>Platform:</strong> ${data.platform || 'N/A'}</p>
-            <p><strong>Date Range:</strong> ${data.dateRange || 'N/A'}</p>
+            <p><strong>Date Range:</strong> ${data.dateRangeEnum || 'N/A'}</p>
             <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
           </div>
           <p>This is a boilerplate email as requested. In a full implementation, this would include:</p>

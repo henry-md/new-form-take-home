@@ -62,7 +62,7 @@ const formSchema = z.object({
   platform: z.enum(["meta", "tiktok"]),
   metrics: z.array(z.string()).min(1, "Select at least one metric"),
   level: z.string().min(1, "Level is required"),
-  dateRange: z.enum(["last7", "last14", "last30", "custom"]),
+  dateRangeEnum: z.enum(["last7", "last14", "last30", "custom"]),
   customDateRange: z.object({
     from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
     to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
@@ -74,11 +74,11 @@ const formSchema = z.object({
   (data) => data.delivery === "link" || !!data.email,
   { message: "Email is required if delivery is email", path: ["email"] }
 ).refine(
-  (data) => data.dateRange !== "custom" || !!data.customDateRange,
+  (data) => data.dateRangeEnum !== "custom" || !!data.customDateRange,
   { message: "Custom date range is required when Custom Range is selected", path: ["customDateRange"] }
 ).refine(
   (data) => {
-    if (data.dateRange === "custom" && data.customDateRange) {
+    if (data.dateRangeEnum === "custom" && data.customDateRange) {
       return new Date(data.customDateRange.from) <= new Date(data.customDateRange.to);
     }
     return true;
@@ -102,7 +102,7 @@ const ReportConfigForm = ({
       platform: "meta",
       metrics: [],
       level: "",
-      dateRange: "last7",
+      dateRangeEnum: "last7",
       cadence: "manual",
       delivery: "email",
       email: "",
@@ -112,13 +112,13 @@ const ReportConfigForm = ({
 
   const platform = form.watch("platform");
   const delivery = form.watch("delivery");
-  const dateRange = form.watch("dateRange");
+  const dateRangeEnum = form.watch("dateRangeEnum");
 
   const metricsOptions = platform === "meta" ? metaMetrics : tiktokMetrics;
   const levelOptions = platform === "meta" ? metaLevels : tiktokLevels;
 
   return (
-    <div className="flex justify-center items-start min-h-screen bg-gray-50 pt-16 w-full max-w-[600px] mx-auto">
+    <div className="flex justify-center items-start min-h-screen bg-gray-50 w-full max-w-[600px] mx-auto">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
         <h2 className="text-2xl font-semibold mb-6 text-center">Configure Report</h2>
         <Form {...form}>
@@ -216,7 +216,7 @@ const ReportConfigForm = ({
 
             <FormField
               control={form.control}
-              name="dateRange"
+              name="dateRangeEnum"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Date Range</FormLabel>
@@ -239,7 +239,7 @@ const ReportConfigForm = ({
               )}
             />
 
-            {dateRange === "custom" && (
+            {dateRangeEnum === "custom" && (
               <FormField
                 control={form.control}
                 name="customDateRange"

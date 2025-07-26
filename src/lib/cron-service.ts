@@ -39,18 +39,20 @@ const generateAndSendReport = async (config: DbReportConfig) => {
       platform: config.platform as ReportParams['platform'],
       metrics: config.metrics.split(','),
       level: config.level,
-      dateRangeEnum: config.dateRange as ReportParams['dateRangeEnum'],
+      dateRangeEnum: config.dateRangeEnum as ReportParams['dateRangeEnum'],
       cadence: config.cadence as ReportParams['cadence'],
       delivery: config.delivery as ReportParams['delivery'],
       email: config.email || undefined
     };
     const reportData = await fetchReportData(reportParams);
+
+    console.log(`Report data fetched for config ${config.id}:`, reportData);
     
     if (config.delivery === 'email' && config.email) {
       // Send email
       const emailHtml = createReportEmail({
         platform: config.platform,
-        dateRange: config.dateRange,
+        dateRangeEnum: config.dateRangeEnum,
         data: reportData
       });
       
@@ -67,7 +69,10 @@ const generateAndSendReport = async (config: DbReportConfig) => {
       }
     } else if (config.delivery === 'link') {
       // TODO: Save report and generate public link
-      console.log(`Report generated for public link access (config ID: ${config.id})`);
+      await prisma.generatedReport.create({
+        data: reportData,
+      });
+      console.log(`Report generated and saved for public link access (config ID: ${config.id})`);
     }
     
     return { success: true };
@@ -82,7 +87,10 @@ export const scheduleCronJob = async (configId: number) => {
   try {
     // Get the config from database
     const config: DbReportConfig | null = await prisma.reportConfig.findUnique({
-      where: { id: configId }
+      where: { id: configId },
+      include: {
+        generatedReports: true,
+      },
     });
     
     if (!config) {
@@ -133,8 +141,11 @@ export const stopCronJob = (configId: number) => {
 // Run a report immediately (manual trigger)
 export const runReportNow = async (configId: number) => {
   try {
-    const config = await prisma.reportConfig.findUnique({
-      where: { id: configId }
+    const config: DbReportConfig | null = await prisma.reportConfig.findUnique({
+      where: { id: configId },
+      include: {
+        generatedReports: true,
+      },
     });
     
     if (!config) {
@@ -180,6 +191,8 @@ export const getCronJobsStatus = () => {
 };
 
 // Auto-initialize in production or when explicitly requested
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('INIT_CRON:', process.env.INIT_CRON);
 if (process.env.NODE_ENV === 'production' || process.env.INIT_CRON === 'true') {
   try {
     await initializeCronJobs();

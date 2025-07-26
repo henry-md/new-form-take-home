@@ -10,7 +10,7 @@ const testEmailSending = async () => {
     // Create test report data
     const testReportData = {
       platform: 'meta',
-      dateRange: 'last7',
+      dateRangeEnum: 'last7',
       data: {
         metrics: ['spend', 'impressions', 'clicks'],
         results: [

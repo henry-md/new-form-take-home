@@ -2,19 +2,20 @@ import { useState, useEffect } from 'react';
 import type { FormValues } from '@/components/ReportConfigForm';
 import type { DbReportConfig } from '@/types/report';
 
-export const useReports = () => {
+
+export function useReports() {
   const [reportConfigs, setReportConfigs] = useState<DbReportConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Fetch report configurations from database
+  // Fetch all report configurations from database
   const fetchReportConfigs = async () => {
     try {
       const response = await fetch('/api/reports');
-      const data: { reportConfigs: DbReportConfig[] } = await response.json();
+      const data: DbReportConfig[] = await response.json();
       if (response.ok) {
-        const configsWithDates = data.reportConfigs.map(config => ({
+        const configsWithDates = data.map(config => ({
           ...config,
           createdAt: new Date(config.createdAt),
           customDateFrom: config.customDateFrom ? new Date(config.customDateFrom) : undefined,

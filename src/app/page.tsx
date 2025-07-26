@@ -94,7 +94,7 @@ export default function Home() {
                           <span className="font-medium">Level:</span> {config.level}
                         </div>
                         <div>
-                          <span className="font-medium">Date Range:</span> {config.dateRange}
+                          <span className="font-medium">Date Range:</span> {config.dateRangeEnum}
                         </div>
                         <div>
                           <span className="font-medium">Cadence:</span> {formatCadence(config.cadence)}
@@ -114,6 +114,9 @@ export default function Home() {
                           🕒 Scheduled: {formatCadence(config.cadence)}
                         </div>
                       )}
+                      <p className="text-sm text-gray-500">
+                        Next Run: {config.cadence !== 'manual' ? 'Scheduled' : 'Manual'}
+                      </p>
                     </div>
                   ))}
                 </div>

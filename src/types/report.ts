@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 // Fields in form
 export interface ReportParams {
   platform: "tiktok" | "meta";
@@ -14,7 +16,7 @@ export interface ReportParams {
 }
 
 // Input type for creating a report config in the DB
-export type DbReportConfigInput = Omit<DbReportConfig, "id" | "createdAt">;
+export type DbReportConfigInput = Omit<DbReportConfig, "id" | "createdAt" | "generatedReports">;
 
 // Database config type (what Prisma returns)
 export interface DbReportConfig {
@@ -22,11 +24,21 @@ export interface DbReportConfig {
   platform: string;
   metrics: string;
   level: string;
-  dateRange: string;
+  dateRangeEnum: string;
   customDateFrom?: Date | null;
   customDateTo?: Date | null;
   cadence: string;
   delivery: string;
   email?: string | null;
+  generatedReports: DbGeneratedReport[];
+  createdAt: Date;
+}
+
+export interface DbGeneratedReport {
+  id: string;
+  reportConfigId: number;
+  data: Prisma.JsonValue; // Api returns data as array of objects, which we store as a stringified value.
+  platform: string;
+  dateRangeEnum: string;
   createdAt: Date;
 }
