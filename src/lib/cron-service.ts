@@ -4,8 +4,7 @@ import { sendEmail, createReportEmail } from './email';
 import { fetchReportData } from './api-client';
 import { ReportParams } from '@/types/report';
 import { DbReportConfig } from '@/types/report';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/db';
 
 // Store active cron jobs in memory, mapping db id to cron.ScheduledTask object
 const activeJobs = new Map<number, cron.ScheduledTask>();

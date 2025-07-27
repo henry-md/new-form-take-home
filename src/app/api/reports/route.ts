@@ -4,8 +4,38 @@ import { scheduleCronJob, stopCronJob } from '@/lib/cron-service';
 import { DbReportConfig, DbReportConfigInput } from '@/types/report';
 import { NextRequest } from 'next/server';
 import { ReportParams } from '@/types/report';
+import prisma from '@/lib/db';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+
+// Get all report configurations
+export async function GET() {
+  try {
+    const configs = await prisma.reportConfig.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        generatedReports: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { id: true },
+        },
+      },
+    });
+
+    const configsWithLatestReport = configs.map(config => ({
+      ...config,
+      latestReportId: config.generatedReports.length > 0 ? config.generatedReports[0].id : null,
+    }));
+
+    return NextResponse.json(configsWithLatestReport);
+  } catch (error) {
+    console.error('Failed to fetch report configs:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch report configurations' },
+      { status: 500 }
+    );
+  }
+}
 
 // Create a new report configuration
 export async function POST(request: NextRequest) {
@@ -79,33 +109,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-// Get all report configurations
-export async function GET() {
-  try {
-    const configs = await prisma.reportConfig.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        generatedReports: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: { id: true },
-        },
-      },
-    });
-
-    const configsWithLatestReport = configs.map(config => ({
-      ...config,
-      latestReportId: config.generatedReports.length > 0 ? config.generatedReports[0].id : null,
-    }));
-
-    return NextResponse.json(configsWithLatestReport);
-  } catch (error) {
-    console.error('Failed to fetch report configs:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch report configurations' },
-      { status: 500 }
-    );
-  }
-}
-
