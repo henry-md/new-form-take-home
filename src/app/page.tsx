@@ -11,11 +11,25 @@ export default function Home() {
     loading,          // Loading Report Config
     error,
     success,
-    runningReportId,  // Running a Report Config that already exists
+    notifications,
+    dismissNotification,
     onSubmit,
     runReportNow,
+    deleteReport,
+    deleteAllReports,
     clearMessages
   } = useReports();
+
+  const getNotificationStyle = (type: 'loading' | 'success' | 'error') => {
+    switch (type) {
+      case 'loading':
+        return 'bg-yellow-100 border-yellow-400 text-yellow-700';
+      case 'success':
+        return 'bg-green-100 border-green-400 text-green-700';
+      case 'error':
+        return 'bg-red-100 border-red-400 text-red-700';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -28,12 +42,32 @@ export default function Home() {
 
           {/* Right Column: Dashboard */}
           <div className="mt-8 lg:mt-0">
-            {runningReportId && (
+            <div className="space-y-2 mb-4">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 border rounded relative ${getNotificationStyle(notification.type)}`}
+                  role="alert"
+                >
+                  <span className="block sm:inline">{notification.message}</span>
+                  {notification.type !== 'loading' && (
+                    <button
+                      onClick={() => dismissNotification(notification.id)}
+                      className="absolute top-0 bottom-0 right-0 px-4 py-3"
+                    >
+                      <span className="text-2xl">×</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {loading && (
               <div
-                className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded relative"
-                role="alert"
+              className="mb-4 p-4 bg-yellow-100 border-yellow-400 text-yellow-700 rounded relative"
+              role="alert"
               >
-                <span className="block sm:inline">Running report...</span>
+                <span className="block sm:inline">Loading configurations...</span>
               </div>
             )}
 
@@ -52,11 +86,21 @@ export default function Home() {
               </div>
             )}
             
-            {loading && <p>Loading configurations...</p>}
             {error && <p className="text-red-500">{error}</p>}
 
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-semibold mb-6">📊 Report Dashboard</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold">📊 Report Dashboard</h2>
+                {reportConfigs.length > 0 && (
+                  <Button
+                    onClick={deleteAllReports}
+                    variant="destructive"
+                    size="sm"
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
               
               {reportConfigs.length === 0 ? (
                 <div className="text-gray-500 text-center py-8">
@@ -75,14 +119,24 @@ export default function Home() {
                             Created: {config.createdAt.toLocaleDateString()}
                           </div>
                         </div>
-                        <Button
-                          onClick={() => runReportNow(config.id)}
-                          variant="outline"
-                          size="sm"
-                          className="bg-blue-50 hover:bg-blue-100"
-                        >
-                          ▶️ Run Now
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            onClick={() => runReportNow(config.id)}
+                            variant="outline"
+                            size="sm"
+                            className="bg-blue-50 hover:bg-blue-100"
+                          >
+                            ▶️ Run Now
+                          </Button>
+                          <Button
+                            onClick={() => deleteReport(config.id)}
+                            variant="destructive"
+                            size="sm"
+                            
+                          >
+                            🗑️ Delete
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 text-sm">

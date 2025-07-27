@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { scheduleCronJob, stopCronJob } from '@/lib/cron-service';
 import { DbReportConfig, DbReportConfigInput } from '@/types/report';
 import { NextRequest } from 'next/server';
@@ -105,6 +104,28 @@ export async function POST(request: NextRequest) {
     console.error('Error creating report config:', error);
     return NextResponse.json(
       { error: 'Failed to create report configuration' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE() {
+  try {
+    const configs = await prisma.reportConfig.findMany({
+      select: { id: true }
+    });
+
+    for (const config of configs) {
+      stopCronJob(config.id);
+    }
+
+    await prisma.reportConfig.deleteMany({});
+
+    return NextResponse.json({ success: true, message: 'All report configurations deleted' });
+  } catch (error) {
+    console.error('Error deleting all report configurations:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete all report configurations' },
       { status: 500 }
     );
   }
