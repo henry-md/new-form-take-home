@@ -12,7 +12,8 @@
     "test-tiktok": "node tests/api/tiktok.ts",
     "test-meta": "node tests/api/meta.ts",
     "test-email": "tsx tests/test-email.ts",
-    "test-cron": "tsx tests/test-cron.ts"
+    "test-cron": "tsx tests/test-cron.ts",
+    "test-openai": "tsx tests/test-openai.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -28,6 +29,7 @@
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.13",
+    "openai": "^4.52.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.60.0",

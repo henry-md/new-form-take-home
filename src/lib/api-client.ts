@@ -2,7 +2,6 @@ import type { ApiPayload, TikTokApi, MetaApi } from '@/types/api';
 import type { ReportParams } from '@/types/report';
 
 export const fetchReportData = async (report: ReportParams) => {
-  // let apiPayload: { [key: string]: any };
   let apiPayload: ApiPayload;
 
   if (report.platform === 'tiktok') {

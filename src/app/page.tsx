@@ -8,10 +8,10 @@ import { formatCadence } from "@/lib/utils";
 export default function Home() {
   const {
     reportConfigs,
-    loading,          // Loading Report Config
+    loading,              // Creating a Report Config
     error,
     success,
-    notifications,
+    notifications,        // Executing one/many report configs that already exist
     dismissNotification,
     onSubmit,
     runReportNow,

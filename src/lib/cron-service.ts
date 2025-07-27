@@ -190,8 +190,6 @@ export const getCronJobsStatus = () => {
 };
 
 // Auto-initialize in production or when explicitly requested
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('INIT_CRON:', process.env.INIT_CRON);
 if (process.env.NODE_ENV === 'production' || process.env.INIT_CRON === 'true') {
   try {
     await initializeCronJobs();
