@@ -5,9 +5,10 @@ import type { DbReportConfig } from '@/types/report';
 
 export function useReports() {
   const [reportConfigs, setReportConfigs] = useState<DbReportConfig[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading Report Config
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [runningReportId, setRunningReportId] = useState<number | null>(null); // Running a Report Config that already exists
 
   // Fetch all report configurations from database
   const fetchReportConfigs = async () => {
@@ -64,6 +65,9 @@ export function useReports() {
 
   // Run a report immediately
   const runReportNow = async (configId: number) => {
+    setRunningReportId(configId);
+    setError(null);
+    setSuccess(null);
     try {
       const response = await fetch(`/api/reports/${configId}/run`, {
         method: 'POST',
@@ -82,6 +86,8 @@ export function useReports() {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       setError(errorMessage);
       return { success: false, error: errorMessage };
+    } finally {
+      setRunningReportId(null);
     }
   };
 
@@ -101,6 +107,7 @@ export function useReports() {
     loading,
     error,
     success,
+    runningReportId,
     onSubmit,
     runReportNow,
     refreshReports: fetchReportConfigs,

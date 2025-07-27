@@ -8,9 +8,10 @@ import { formatCadence } from "@/lib/utils";
 export default function Home() {
   const {
     reportConfigs,
-    loading,
+    loading,          // Loading Report Config
     error,
     success,
+    runningReportId,  // Running a Report Config that already exists
     onSubmit,
     runReportNow,
     clearMessages
@@ -20,42 +21,40 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Form Section */}
+          {/* Left Column: Form */}
           <div>
             <ReportConfigForm onSubmit={onSubmit} />
-            
-            {/* Status Messages */}
-            {loading && (
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="text-blue-800">Saving configuration...</div>
-              </div>
-            )}
-            {error && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="text-red-800">Error: {error}</div>
-                <button 
-                  onClick={clearMessages}
-                  className="text-red-600 underline text-sm mt-1"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
-            {success && (
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="text-green-800">{success}</div>
-                <button 
-                  onClick={clearMessages}
-                  className="text-green-600 underline text-sm mt-1"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* Dashboard Section */}
-          <div>
+          {/* Right Column: Dashboard */}
+          <div className="mt-8 lg:mt-0">
+            {runningReportId && (
+              <div
+                className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded relative"
+                role="alert"
+              >
+                <span className="block sm:inline">Running report...</span>
+              </div>
+            )}
+
+            {success && (
+              <div
+                className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded relative"
+                role="alert"
+              >
+                <span className="block sm:inline">{success}</span>
+                <button
+                  onClick={clearMessages}
+                  className="absolute top-0 bottom-0 right-0 px-4 py-3"
+                >
+                  <span className="text-2xl">×</span>
+                </button>
+              </div>
+            )}
+            
+            {loading && <p>Loading configurations...</p>}
+            {error && <p className="text-red-500">{error}</p>}
+
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-2xl font-semibold mb-6">📊 Report Dashboard</h2>
               
@@ -122,19 +121,6 @@ export default function Home() {
                   ))}
                 </div>
               )}
-            </div>
-            
-            {/* Instructions */}
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">📧 Email Setup</h3>
-              <p className="text-blue-700 text-sm">
-                To receive emails, set up your SMTP credentials in the environment variables:
-                <code className="block mt-2 p-2 bg-white rounded text-xs">
-                  EMAIL_USER=your-email@gmail.com<br/>
-                  EMAIL_PASS=your-app-password<br/>
-                  EMAIL_FROM=reports@yourcompany.com
-                </code>
-              </p>
             </div>
           </div>
         </div>
