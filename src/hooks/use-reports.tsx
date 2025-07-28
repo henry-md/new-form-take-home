@@ -3,10 +3,18 @@ import type { FormValues } from '@/components/ReportConfigForm';
 import type { DbReportConfig } from '@/types/report';
 import { toast } from 'sonner';
 
-
+interface ConfirmationState {
+  isOpen: boolean;
+  action: 'delete' | 'deleteAll' | null;
+  configId?: number;
+}
 
 export function useReports() {
   const [reportConfigs, setReportConfigs] = useState<DbReportConfig[]>([]);
+  const [confirmation, setConfirmation] = useState<ConfirmationState>({
+    isOpen: false,
+    action: null,
+  });
 
   // Fetch all report configurations from database
   const fetchReportConfigs = async () => {
@@ -80,45 +88,71 @@ export function useReports() {
     );
   };
 
-
   const deleteReport = async (id: number) => {
-    toast.promise(
-      (async () => {
-        setReportConfigs(prev => prev.filter(c => c.id !== id)); // Optimistic update
-        const response = await fetch(`/api/reports/${id}`, { method: 'DELETE' });
-        if (!response.ok) {
-          // Revert on failure
-          fetchReportConfigs();
-          throw new Error('Failed to delete report');
-        }
-      })(),
-      {
-        loading: 'Deleting report...',
-        success: 'Report deleted successfully',
-        error: 'Failed to delete report',
-      }
-    );
+    setConfirmation({
+      isOpen: true,
+      action: 'delete',
+      configId: id,
+    });
   };
 
   const deleteAllReports = async () => {
-    toast.promise(
-      (async () => {
-        setReportConfigs([]); // Optimistic update
-        const response = await fetch('/api/reports', { method: 'DELETE' });
-        if (!response.ok) {
-          // Revert on failure
-          fetchReportConfigs();
-          throw new Error('Failed to delete all reports');
-        }
-      })(),
-      {
-        loading: 'Deleting all reports...',
-        success: 'All reports deleted successfully',
-        error: 'Failed to delete all reports',
-      }
-    );
+    setConfirmation({
+      isOpen: true,
+      action: 'deleteAll',
+    });
   };
 
+  const confirmDelete = async () => {
+    if (!confirmation.action) return;
+
+    try {
+      if (confirmation.action === 'delete' && confirmation.configId) {
+        toast.promise(
+          (async () => {
+            setReportConfigs(prev => prev.filter(c => c.id !== confirmation.configId)); // Optimistic update
+            const response = await fetch(`/api/reports/${confirmation.configId}`, { method: 'DELETE' });
+            if (!response.ok) {
+              // Revert on failure
+              fetchReportConfigs();
+              throw new Error('Failed to delete report');
+            }
+          })(),
+          {
+            loading: 'Deleting report...',
+            success: 'Report deleted successfully',
+            error: 'Failed to delete report',
+          }
+        );
+      } else if (confirmation.action === 'deleteAll') {
+        toast.promise(
+          (async () => {
+            setReportConfigs([]); // Optimistic update
+            const response = await fetch('/api/reports', { method: 'DELETE' });
+            if (!response.ok) {
+              // Revert on failure
+              fetchReportConfigs();
+              throw new Error('Failed to delete all reports');
+            }
+          })(),
+          {
+            loading: 'Deleting all reports...',
+            success: 'All reports deleted successfully',
+            error: 'Failed to delete all reports',
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Failed to delete report(s)", error);
+      fetchReportConfigs();
+    } finally {
+      setConfirmation({ isOpen: false, action: null });
+    }
+  };
+
+  const cancelDelete = () => {
+    setConfirmation({ isOpen: false, action: null });
+  };
 
   // Load reports on mount
   useEffect(() => {
@@ -131,6 +165,9 @@ export function useReports() {
     runReportNow,
     deleteReport,
     deleteAllReports,
-    refreshReports: fetchReportConfigs
+    refreshReports: fetchReportConfigs,
+    confirmation,
+    confirmDelete,
+    cancelDelete,
   };
 }; 

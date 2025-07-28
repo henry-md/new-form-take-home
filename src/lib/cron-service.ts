@@ -1,5 +1,5 @@
 import * as cron from 'node-cron';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { sendEmail, createReportEmail } from './email';
 import { fetchReportData } from './api-client';
 import { ReportParams } from '@/types/report';
@@ -260,7 +260,7 @@ export const initializeCronJobs = async () => {
 
 // Get status of all active jobs
 export const getCronJobsStatus = () => {
-  const status = Array.from(activeJobs.entries()).map(([configId, task]) => ({
+  const status = Array.from(activeJobs.entries()).map(([configId]) => ({
     configId,
     isRunning: true  // If it's in the map, it's active
   }));

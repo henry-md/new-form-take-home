@@ -2,6 +2,7 @@
 
 import { ReportConfigForm } from "@/components/ReportConfigForm";
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { useReports } from "@/hooks/use-reports";
 import { formatCadence } from "@/lib/utils";
 
@@ -11,8 +12,32 @@ export default function Home() {
     onSubmit,
     runReportNow,
     deleteReport,
-    deleteAllReports
+    deleteAllReports,
+    confirmation,
+    confirmDelete,
+    cancelDelete,
   } = useReports();
+
+  const getConfirmationProps = () => {
+    if (confirmation.action === 'delete') {
+      return {
+        title: 'Delete Report Configuration',
+        description: 'Are you sure you want to delete this report configuration? This action cannot be undone.',
+        actionText: 'Delete',
+      };
+    } else if (confirmation.action === 'deleteAll') {
+      return {
+        title: 'Delete All Report Configurations',
+        description: `Are you sure you want to delete all ${reportConfigs.length} report configurations? This action cannot be undone.`,
+        actionText: 'Delete All',
+      };
+    }
+    return {
+      title: '',
+      description: '',
+      actionText: 'Confirm',
+    };
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -116,6 +141,16 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        title={getConfirmationProps().title}
+        description={getConfirmationProps().description}
+        actionText={getConfirmationProps().actionText}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 }

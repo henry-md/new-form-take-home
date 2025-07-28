@@ -2,7 +2,6 @@ import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { scheduleCronJob, stopCronJob } from '../src/lib/cron-service';
 import { DbReportConfigInput, DbReportConfig } from '@/types/report';
-import { Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const TEST_EMAIL = "henrymdeutsch@gmail.com";

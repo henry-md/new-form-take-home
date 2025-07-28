@@ -12,6 +12,8 @@ export async function generateReportSummary(
     Do not start with "This report shows" or "Here is a summary". Just provide the summary directly.
     Highlight the best and worst performing metrics.
 
+    If there is no data in this report, don't make things up: say concisely that there is no data.
+
     Data:
     ${JSON.stringify(reportData, null, 2)}
   `;
