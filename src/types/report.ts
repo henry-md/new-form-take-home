@@ -49,30 +49,21 @@ export interface ReportParams {
   email?: string;
 }
 
+// Use Prisma.validator to create a reusable query shape for type generation
+export const reportConfigWithIncludes = Prisma.validator<Prisma.ReportConfigDefaultArgs>()({
+  include: { generatedReports: true }, // One to many
+});
+
+export const generatedReportWithIncludes = Prisma.validator<Prisma.GeneratedReportDefaultArgs>()({
+  include: { reportConfig: true }, // One to one
+});
+
 // Input type for creating a report config in the DB
-export type DbReportConfigInput = Omit<DbReportConfig, "id" | "createdAt" | "generatedReports">;
+// This ensures we match exactly what Prisma's `create` method expects.
+export type DbReportConfigInput = Omit<Prisma.ReportConfigCreateInput, 'generatedReports' | 'createdAt'>;
 
 // Database config type (what Prisma returns)
-export interface DbReportConfig {
-  id: number;
-  platform: string;
-  metrics: string;
-  level: string;
-  dateRangeEnum: string;
-  customDateFrom?: Date | null;
-  customDateTo?: Date | null;
-  cadence: string;
-  delivery: string;
-  email?: string | null;
-  generatedReports: DbGeneratedReport[];
-  createdAt: Date;
-}
+// This generates a precise type based on the schema and the includes.
+export type DbReportConfig = Prisma.ReportConfigGetPayload<typeof reportConfigWithIncludes>;
 
-export interface DbGeneratedReport {
-  id: string;
-  reportConfigId: number;
-  data: Prisma.JsonValue; // Api returns data as array of objects, which we store as a stringified value.
-  platform: string;
-  dateRangeEnum: string;
-  createdAt: Date;
-}
+export type DbGeneratedReport = Prisma.GeneratedReportGetPayload<typeof generatedReportWithIncludes>;

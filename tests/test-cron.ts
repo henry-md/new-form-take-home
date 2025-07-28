@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { scheduleCronJob, stopCronJob } from '../src/lib/cron-service';
+import { DbReportConfigInput, DbReportConfig } from '@/types/report';
+import { Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const TEST_EMAIL = "henrymdeutsch@gmail.com";
@@ -8,20 +10,28 @@ const TEST_EMAIL = "henrymdeutsch@gmail.com";
 const testCronJobScheduling = async () => {
   console.log('🧪 Starting cron job scheduling test...');
 
-  let testConfig;
+  let testConfig: DbReportConfig | undefined;
 
   try {
     // Create a temporary report config in the database
     console.log('📝 Creating temporary report config...');
+    const data: DbReportConfigInput = {
+      platform: 'meta',
+      metrics: 'spend,impressions',
+      level: 'campaign',
+      dateRangeEnum: 'last7',
+      cadence: 'every_minute', // For testing
+      delivery: 'email',
+      email: TEST_EMAIL,
+      metadata: {
+        lastRun: new Date().toISOString(),
+        lastError: null,
+      },
+    }
     testConfig = await prisma.reportConfig.create({
-      data: {
-        platform: 'meta',
-        metrics: 'spend,impressions',
-        level: 'campaign',
-        dateRangeEnum: 'last7',
-        cadence: 'every_minute', // For testing
-        delivery: 'email',
-        email: TEST_EMAIL,
+      data,
+      include: {
+        generatedReports: true,
       },
     });
     console.log(`✅ Temporary config created with ID: ${testConfig.id}`);

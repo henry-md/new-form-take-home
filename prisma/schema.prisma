@@ -18,25 +18,29 @@ model User {
 model ReportConfig {
   id              Int      @id @default(autoincrement())
   platform        String
-  metrics         String   // store as comma-separated or JSON string
+  metrics         String    // store as comma-separated or JSON string
   level           String
-  dateRangeEnum   String   // "last7", "last14", "last30", "lifetime", "custom"
+  dateRangeEnum   String    // "last7", "last14", "last30", "lifetime", "custom"
   customDateFrom  DateTime?
   customDateTo    DateTime?
   cadence         String
   delivery        String
-  email           String?
+  email           String?   // Optional in case that user wants exposed link
   generatedReports GeneratedReport[]
+  metadata        Json
   createdAt       DateTime @default(now())
 }
 
+// I arbitrarily require that all GeneratedReport types should include their associated Report Config
 model GeneratedReport {
   id             String       @id @default(cuid())
   reportConfigId Int
   reportConfig   ReportConfig @relation(fields: [reportConfigId], references: [id], onDelete: Cascade)
-  data           Json
-  platform       String
+  data           Json         @default("{}")
+  summary        String
+  platform       String       // should prob delete platform, enum later & deal with attached obj
   dateRangeEnum  String
+  metadata       Json         @default("{}")
   createdAt      DateTime     @default(now())
 
   @@index([reportConfigId])

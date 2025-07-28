@@ -35,7 +35,11 @@ export const sendEmail = async ({ to, subject, html }: EmailConfig) => {
   }
 };
 
-export const createReportEmail = (data: { platform?: string; dateRangeEnum?: string; data?: unknown }) => {
+export const createReportEmail = (data: { platform?: string; dateRangeEnum?: string; data?: unknown; summary?: string }) => {
+  return `
+  <h1>Hello</h1>
+  <p>Summary: ${data.summary}</p>
+  `;
   return `
     <!DOCTYPE html>
     <html>

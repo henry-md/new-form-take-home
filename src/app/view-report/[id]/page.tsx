@@ -4,7 +4,7 @@ import { DbGeneratedReport } from '@/types/report';
 
 const prisma = new PrismaClient();
 
-async function getReport(id: string) {
+async function getReport(id: string): Promise<DbGeneratedReport> {
   const report: DbGeneratedReport | null = await prisma.generatedReport.findUnique({
     where: { id },
     include: {

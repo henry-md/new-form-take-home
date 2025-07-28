@@ -11,9 +11,7 @@ interface Notification {
 export function useReports() {
   const [reportConfigs, setReportConfigs] = useState<DbReportConfig[]>([]);
   const [loading, setLoading] = useState(false); // Loading Report Config
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]); // For "Run Now" actions
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Fetch all report configurations from database
   const fetchReportConfigs = async () => {
@@ -24,8 +22,8 @@ export function useReports() {
         const configsWithDates = data.map(config => ({
           ...config,
           createdAt: new Date(config.createdAt),
-          customDateFrom: config.customDateFrom ? new Date(config.customDateFrom) : undefined,
-          customDateTo: config.customDateTo ? new Date(config.customDateTo) : undefined,
+          customDateFrom: config.customDateFrom ? new Date(config.customDateFrom) : null,
+          customDateTo: config.customDateTo ? new Date(config.customDateTo) : null,
         }));
         setReportConfigs(configsWithDates || []);
       }
@@ -37,8 +35,7 @@ export function useReports() {
   // Create a new report configuration. Passed into onSubmit of form.
   const onSubmit = async (formData: FormValues) => {
     setLoading(true);
-    setError(null);
-    setSuccess(null);
+    const runId = Date.now();
     
     try {
       const response = await fetch('/api/reports', {
@@ -53,17 +50,18 @@ export function useReports() {
       
       if (response.ok) {
         await fetchReportConfigs(); // Refresh the list
+        setNotifications(prev => [...prev, { id: runId, type: 'success', message: 'Report configuration saved successfully!' }]);
+        setLoading(false);
         return { success: true };
       } else {
-        setError(result.error || 'Failed to save configuration');
+        setNotifications(prev => [...prev, { id: runId, type: 'error', message: result.error || 'Failed to save configuration' }]);
         return { success: false, error: result.error };
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      setError(errorMessage);
+      setNotifications(prev => [...prev, { id: runId, type: 'error', message: errorMessage }]);
       return { success: false, error: errorMessage };
     } finally {
-      setSuccess('Report configuration saved and scheduled successfully!');
       setLoading(false);
     }
   };
@@ -140,8 +138,7 @@ export function useReports() {
 
   // Clear messages
   const clearMessages = () => {
-    setError(null);
-    setSuccess(null);
+    setNotifications([]);
   };
 
   // Load reports on mount
@@ -152,8 +149,6 @@ export function useReports() {
   return {
     reportConfigs,
     loading,
-    error,
-    success,
     notifications,
     dismissNotification,
     onSubmit,

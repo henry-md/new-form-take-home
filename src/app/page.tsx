@@ -9,9 +9,7 @@ export default function Home() {
   const {
     reportConfigs,
     loading,              // Creating a Report Config
-    error,
-    success,
-    notifications,        // Executing one/many report configs that already exist
+    notifications,        // Executing one/many report configs that already exist, and creating report configs.
     dismissNotification,
     onSubmit,
     runReportNow,
@@ -70,23 +68,6 @@ export default function Home() {
                 <span className="block sm:inline">Loading configurations...</span>
               </div>
             )}
-
-            {success && (
-              <div
-                className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded relative"
-                role="alert"
-              >
-                <span className="block sm:inline">{success}</span>
-                <button
-                  onClick={clearMessages}
-                  className="absolute top-0 bottom-0 right-0 px-4 py-3"
-                >
-                  <span className="text-2xl">×</span>
-                </button>
-              </div>
-            )}
-            
-            {error && <p className="text-red-500">{error}</p>}
 
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex justify-between items-center mb-6">

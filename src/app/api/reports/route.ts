@@ -77,7 +77,8 @@ export async function POST(request: NextRequest) {
       ...(dateRangeEnum === 'custom' && dateRange && dateRange.from && dateRange.to && {
         customDateFrom: new Date(dateRange.from),
         customDateTo: new Date(dateRange.to)
-      })
+      }),
+      metadata: {}
     };
 
     const reportConfig: DbReportConfig = await prisma.reportConfig.create({
