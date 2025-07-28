@@ -1,17 +1,12 @@
 import { useState, useEffect } from 'react';
 import type { FormValues } from '@/components/ReportConfigForm';
 import type { DbReportConfig } from '@/types/report';
+import { toast } from 'sonner';
 
-interface Notification {
-  id: number;
-  type: 'loading' | 'success' | 'error';
-  message: string;
-}
+
 
 export function useReports() {
   const [reportConfigs, setReportConfigs] = useState<DbReportConfig[]>([]);
-  const [loading, setLoading] = useState(false); // Loading Report Config
-  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Fetch all report configurations from database
   const fetchReportConfigs = async () => {
@@ -34,112 +29,96 @@ export function useReports() {
 
   // Create a new report configuration. Passed into onSubmit of form.
   const onSubmit = async (formData: FormValues) => {
-    setLoading(true);
-    const runId = Date.now();
-    
-    try {
-      const response = await fetch('/api/reports', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
+    return toast.promise(
+      (async () => {
+        const response = await fetch('/api/reports', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to save configuration');
+        }
+        
         await fetchReportConfigs(); // Refresh the list
-        setNotifications(prev => [...prev, { id: runId, type: 'success', message: 'Report configuration saved successfully!' }]);
-        setLoading(false);
-        return { success: true };
-      } else {
-        setNotifications(prev => [...prev, { id: runId, type: 'error', message: result.error || 'Failed to save configuration' }]);
-        return { success: false, error: result.error };
+        return result;
+      })(),
+      {
+        loading: 'Saving report configuration...',
+        success: 'Report configuration saved successfully!',
+        error: 'Failed to save configuration',
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      setNotifications(prev => [...prev, { id: runId, type: 'error', message: errorMessage }]);
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   // Run a report immediately
   const runReportNow = async (configId: number) => {
-    const runId = Date.now() + Math.random();
-    setNotifications(prev => [...prev, { id: runId, type: 'loading', message: 'Running report...' }]);
-
-    try {
-      const response = await fetch(`/api/reports/${configId}/run`, {
-        method: 'POST',
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        setNotifications(prev => 
-          prev.map(n => n.id === runId 
-            ? { ...n, type: 'success', message: 'Report generated and sent successfully!' } 
-            : n
-          )
-        );
-      } else {
-        setNotifications(prev => 
-          prev.map(n => n.id === runId 
-            ? { ...n, type: 'error', message: result.error || 'Failed to run report' } 
-            : n
-          )
-        );
+    toast.promise(
+      (async () => {
+        const response = await fetch(`/api/reports/${configId}/run`, {
+          method: 'POST',
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to run report');
+        }
+        
+        return result;
+      })(),
+      {
+        loading: 'Running report...',
+        success: 'Report generated and sent successfully!',
+        error: 'Failed to run report',
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      setNotifications(prev => 
-        prev.map(n => n.id === runId 
-          ? { ...n, type: 'error', message: errorMessage } 
-          : n
-        )
-      );
-    }
+    );
   };
 
-  const dismissNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
 
   const deleteReport = async (id: number) => {
-    try {
-      setReportConfigs(prev => prev.filter(c => c.id !== id)); // Optimistic update
-      const response = await fetch(`/api/reports/${id}`, { method: 'DELETE' });
-      if (!response.ok) {
-        // Revert on failure
-        fetchReportConfigs();
+    toast.promise(
+      (async () => {
+        setReportConfigs(prev => prev.filter(c => c.id !== id)); // Optimistic update
+        const response = await fetch(`/api/reports/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+          // Revert on failure
+          fetchReportConfigs();
+          throw new Error('Failed to delete report');
+        }
+      })(),
+      {
+        loading: 'Deleting report...',
+        success: 'Report deleted successfully',
+        error: 'Failed to delete report',
       }
-    } catch (error) {
-      console.error("Failed to delete report", error);
-      fetchReportConfigs();
-    }
+    );
   };
 
   const deleteAllReports = async () => {
-    try {
-      setReportConfigs([]); // Optimistic update
-      const response = await fetch('/api/reports', { method: 'DELETE' });
-      if (!response.ok) {
-        // Revert on failure
-        fetchReportConfigs();
+    toast.promise(
+      (async () => {
+        setReportConfigs([]); // Optimistic update
+        const response = await fetch('/api/reports', { method: 'DELETE' });
+        if (!response.ok) {
+          // Revert on failure
+          fetchReportConfigs();
+          throw new Error('Failed to delete all reports');
+        }
+      })(),
+      {
+        loading: 'Deleting all reports...',
+        success: 'All reports deleted successfully',
+        error: 'Failed to delete all reports',
       }
-    } catch (error) {
-      console.error("Failed to delete all reports", error);
-      fetchReportConfigs();
-    }
+    );
   };
 
-  // Clear messages
-  const clearMessages = () => {
-    setNotifications([]);
-  };
 
   // Load reports on mount
   useEffect(() => {
@@ -148,14 +127,10 @@ export function useReports() {
 
   return {
     reportConfigs,
-    loading,
-    notifications,
-    dismissNotification,
     onSubmit,
     runReportNow,
     deleteReport,
     deleteAllReports,
-    refreshReports: fetchReportConfigs,
-    clearMessages
+    refreshReports: fetchReportConfigs
   };
 }; 

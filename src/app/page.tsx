@@ -8,26 +8,11 @@ import { formatCadence } from "@/lib/utils";
 export default function Home() {
   const {
     reportConfigs,
-    loading,              // Creating a Report Config
-    notifications,        // Executing one/many report configs that already exist, and creating report configs.
-    dismissNotification,
     onSubmit,
     runReportNow,
     deleteReport,
-    deleteAllReports,
-    clearMessages
+    deleteAllReports
   } = useReports();
-
-  const getNotificationStyle = (type: 'loading' | 'success' | 'error') => {
-    switch (type) {
-      case 'loading':
-        return 'bg-yellow-100 border-yellow-400 text-yellow-700';
-      case 'success':
-        return 'bg-green-100 border-green-400 text-green-700';
-      case 'error':
-        return 'bg-red-100 border-red-400 text-red-700';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -40,35 +25,6 @@ export default function Home() {
 
           {/* Right Column: Dashboard */}
           <div className="mt-8 lg:mt-0">
-            <div className="space-y-2 mb-4">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-4 border rounded relative ${getNotificationStyle(notification.type)}`}
-                  role="alert"
-                >
-                  <span className="block sm:inline">{notification.message}</span>
-                  {notification.type !== 'loading' && (
-                    <button
-                      onClick={() => dismissNotification(notification.id)}
-                      className="absolute top-0 bottom-0 right-0 px-4 py-3"
-                    >
-                      <span className="text-2xl">×</span>
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {loading && (
-              <div
-              className="mb-4 p-4 bg-yellow-100 border-yellow-400 text-yellow-700 rounded relative"
-              role="alert"
-              >
-                <span className="block sm:inline">Loading configurations...</span>
-              </div>
-            )}
-
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-semibold">📊 Report Dashboard</h2>
