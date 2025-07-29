@@ -126,20 +126,20 @@ const ReportConfigForm = ({
   const levelOptions = platform === "meta" ? metaLevels : tiktokLevels;
 
   return (
-    <div className="flex justify-center items-start min-h-screen bg-gray-50 w-full max-w-[600px] mx-auto">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-semibold mb-6 text-center">Configure Report</h2>
+    <div className="w-full">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 lg:p-8">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center">⚙️ Configure Report</h2>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
             <FormField
               control={form.control}
               name="platform"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Platform</FormLabel>
+                  <FormLabel className="text-sm sm:text-base">Platform</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 sm:h-11">
                         <SelectValue placeholder="Select a platform" />
                       </SelectTrigger>
                     </FormControl>
@@ -161,15 +161,15 @@ const ReportConfigForm = ({
               name="metrics"
               render={() => (
                 <FormItem>
-                  <FormLabel>Metrics</FormLabel>
-                  <div className="grid grid-cols-2 gap-4">
+                  <FormLabel className="text-sm sm:text-base">Metrics</FormLabel>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                     {metricsOptions.map((metric) => (
                       <FormField
                         key={metric}
                         control={form.control}
                         name="metrics"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormItem className="flex flex-row items-center space-x-2 sm:space-x-3 space-y-0 p-2 rounded border hover:bg-gray-50">
                             <FormControl>
                               <Checkbox
                                 checked={field.value?.includes(metric)}
@@ -182,9 +182,10 @@ const ReportConfigForm = ({
                                         )
                                       )
                                 }}
+                                className="shrink-0"
                               />
                             </FormControl>
-                            <FormLabel className="text-sm font-normal">
+                            <FormLabel className="text-xs sm:text-sm font-normal cursor-pointer flex-1 leading-tight">
                               {metric}
                             </FormLabel>
                           </FormItem>
@@ -202,10 +203,10 @@ const ReportConfigForm = ({
               name="level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Level</FormLabel>
+                  <FormLabel className="text-sm sm:text-base">Level</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 sm:h-11">
                         <SelectValue placeholder="Select a level" />
                       </SelectTrigger>
                     </FormControl>
@@ -227,11 +228,11 @@ const ReportConfigForm = ({
               name="dateRangeEnum"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date Range</FormLabel>
+                  <FormLabel className="text-sm sm:text-base">Date Range</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a date range" />
+                      <SelectTrigger className="h-10 sm:h-11">
+                        <SelectValue placeholder="Select date range" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -253,10 +254,10 @@ const ReportConfigForm = ({
                 name="dateRange"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Custom Date Range</FormLabel>
-                    <div className="grid grid-cols-2 gap-4">
+                    <FormLabel className="text-sm sm:text-base">Custom Date Range</FormLabel>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <FormLabel className="text-sm text-gray-600">From</FormLabel>
+                        <FormLabel className="text-xs sm:text-sm text-gray-600 mb-1 block">From</FormLabel>
                         <FormControl>
                           <Input
                             type="date"
@@ -266,11 +267,12 @@ const ReportConfigForm = ({
                               from: e.target.value
                             })}
                             placeholder="YYYY-MM-DD"
+                            className="h-10 sm:h-11"
                           />
                         </FormControl>
                       </div>
                       <div>
-                        <FormLabel className="text-sm text-gray-600">To</FormLabel>
+                        <FormLabel className="text-xs sm:text-sm text-gray-600 mb-1 block">To</FormLabel>
                         <FormControl>
                           <Input
                             type="date"
@@ -280,6 +282,7 @@ const ReportConfigForm = ({
                               to: e.target.value
                             })}
                             placeholder="YYYY-MM-DD"
+                            className="h-10 sm:h-11"
                           />
                         </FormControl>
                       </div>
@@ -295,11 +298,11 @@ const ReportConfigForm = ({
               name="cadence"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cadence</FormLabel>
+                  <FormLabel className="text-sm sm:text-base">Cadence</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a cadence" />
+                      <SelectTrigger className="h-10 sm:h-11">
+                        <SelectValue placeholder="Select cadence" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -320,11 +323,11 @@ const ReportConfigForm = ({
               name="delivery"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Delivery</FormLabel>
+                  <FormLabel className="text-sm sm:text-base">Delivery</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a delivery method" />
+                      <SelectTrigger className="h-10 sm:h-11">
+                        <SelectValue placeholder="Select delivery method" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -346,13 +349,14 @@ const ReportConfigForm = ({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-sm sm:text-base">Email</FormLabel>
                     <FormControl>
                       <Input 
                         type="email" 
                         placeholder="you@example.com" 
                         {...field}
                         value={field.value || ""}
+                        className="h-10 sm:h-11"
                       />
                     </FormControl>
                     <FormMessage />
@@ -362,25 +366,25 @@ const ReportConfigForm = ({
             )}
 
             {delivery === "link" && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-2">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <span className="text-blue-500 text-lg">🔗</span>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <span className="text-blue-500 text-base sm:text-lg">🔗</span>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs sm:text-sm font-medium text-blue-900 mb-1">
                       Public Link Selected
                     </h4>
-                    <p className="text-sm text-blue-700">
+                    <p className="text-xs sm:text-sm text-blue-700 leading-relaxed">
                       Reports will be generated and accessible from your dashboard. 
-                      You&apos;ll receive a shareable link that you can access anytime.
+                      You&apos;ll receive a secure shareable link with 24-hour expiration.
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            <Button type="submit" className="mt-4 w-full">
+            <Button type="submit" className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium">
               {delivery === "link" 
                 ? "📊 Create Report & Generate Link" 
                 : "📧 Save & Start Email Reports"
