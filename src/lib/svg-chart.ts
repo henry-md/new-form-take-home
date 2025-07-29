@@ -7,13 +7,50 @@ interface ChartData {
 
 interface DataPoint {
   [key: string]: unknown;
-  spend?: number;
-  impressions?: number;
-  clicks?: number;
-  conversions?: number;
+  // Meta platform structure (flat)
+  spend?: string | number;
+  impressions?: string | number;
+  clicks?: string | number;
+  conversions?: string | number | unknown[];
+  cost_per_conversion?: string | number | unknown[];
+  reach?: string | number;
+  frequency?: string | number;
+  ctr?: string | number;
+  cpc?: string | number;
+  conversion_rate?: string | number;
   age?: string;
   date_start?: string;
   date_stop?: string;
+  // TikTok platform structure (nested)
+  metrics?: {
+    [key: string]: unknown;
+    spend?: string | number;
+    impressions?: string | number;
+    clicks?: string | number;
+    conversions?: string | number;
+    cost_per_conversion?: string | number;
+    conversion_rate?: string | number;
+    ctr?: string | number;
+    cpc?: string | number;
+    reach?: string | number;
+    frequency?: string | number;
+  };
+  dimensions?: {
+    [key: string]: unknown;
+    age?: string;
+    ad_id?: string;
+    campaign_id?: string;
+    adgroup_id?: string;
+    advertiser_id?: string;
+    stat_time_day?: string;
+    campaign_name?: string;
+    adgroup_name?: string;
+    ad_name?: string;
+    country_code?: string;
+    gender?: string;
+    province_id?: string;
+    dma_id?: string;
+  };
 }
 
 // Remove duplicate data entries based on age, date_start, and date_stop
@@ -69,44 +106,119 @@ export function analyzeData(data: unknown): { insights: string[], chartData: Cha
 }
 
 function processCleanedData(cleanedDataPoints: DataPoint[]): { insights: string[], chartData: ChartData } {
-  // Extract age groups and their spend
-  const ageSpendMap = new Map<string, number>();
-  const totalSpend = cleanedDataPoints.reduce((sum, point: DataPoint) => {
-    let spend = 0;
-    if (typeof point.spend === 'string') {
-      spend = parseFloat(point.spend) || 0;
-    } else if (typeof point.spend === 'number') {
-      spend = point.spend;
+  // Extract age groups and their primary metric value
+  const ageMetricMap = new Map<string, number>();
+  
+  // All possible metrics from both TikTok and Meta platforms
+  const availableMetrics = [
+    'spend', 'clicks', 'impressions', 'reach', 'conversions', 
+    'cost_per_conversion', 'conversion_rate', 'ctr', 'cpc', 'frequency'
+  ];
+  let primaryMetric = 'spend'; // default
+  let chartTitle = 'Spend by Age Group';
+  
+  // Helper function to extract metric value from data point (handles nested structures)
+  const extractMetricValue = (point: DataPoint, metric: string): number => {
+    const pointObj = point as Record<string, unknown>;
+    
+    // Check if metric exists directly on the point
+    if (metric in pointObj) {
+      const rawValue = pointObj[metric];
+      if (typeof rawValue === 'string') {
+        return parseFloat(rawValue) || 0;
+      } else if (typeof rawValue === 'number') {
+        return rawValue;
+      }
     }
     
-    const ageGroup = (point.age as string) || 'Unknown';
-    ageSpendMap.set(ageGroup, (ageSpendMap.get(ageGroup) || 0) + spend);
-    return sum + spend;
+    // Check nested metrics object (for TikTok data structure)
+    if ('metrics' in pointObj && pointObj.metrics && typeof pointObj.metrics === 'object') {
+      const metricsObj = pointObj.metrics as Record<string, unknown>;
+      if (metric in metricsObj) {
+        const rawValue = metricsObj[metric];
+        if (typeof rawValue === 'string') {
+          return parseFloat(rawValue) || 0;
+        } else if (typeof rawValue === 'number') {
+          return rawValue;
+        }
+      }
+    }
+    
+    return 0;
+  };
+  
+  // Helper function to extract age from data point (handles nested structures)
+  const extractAge = (point: DataPoint): string => {
+    const pointObj = point as Record<string, unknown>;
+    
+    // Check if age exists directly on the point
+    if ('age' in pointObj && pointObj.age) {
+      return String(pointObj.age);
+    }
+    
+    // Check nested dimensions object (for TikTok data structure)
+    if ('dimensions' in pointObj && pointObj.dimensions && typeof pointObj.dimensions === 'object') {
+      const dimensionsObj = pointObj.dimensions as Record<string, unknown>;
+      if ('age' in dimensionsObj && dimensionsObj.age) {
+        return String(dimensionsObj.age);
+      }
+    }
+    
+    return 'Unknown';
+  };
+  
+  // Find the first available metric in the data
+  if (cleanedDataPoints.length > 0) {
+    for (const metric of availableMetrics) {
+      let hasMetric = false;
+      
+      // Check if any data point has this metric
+      for (const point of cleanedDataPoints) {
+        if (extractMetricValue(point, metric) > 0) {
+          hasMetric = true;
+          break;
+        }
+      }
+      
+      if (hasMetric) {
+        primaryMetric = metric;
+        chartTitle = `${metric.charAt(0).toUpperCase() + metric.slice(1)} by Age Group`;
+        break;
+      }
+    }
+  }
+  
+  const totalMetricValue = cleanedDataPoints.reduce((sum, point: DataPoint) => {
+    const metricValue = extractMetricValue(point, primaryMetric);
+    const ageGroup = extractAge(point);
+    
+    ageMetricMap.set(ageGroup, (ageMetricMap.get(ageGroup) || 0) + metricValue);
+    return sum + metricValue;
   }, 0);
 
-  // Sort by spend and get top performers
-  const sortedAgeGroups = Array.from(ageSpendMap.entries())
+  // Sort by metric value and get top performers
+  const sortedAgeGroups = Array.from(ageMetricMap.entries())
     .sort(([,a], [,b]) => b - a)
     .slice(0, 6);
 
   const labels = sortedAgeGroups.map(([age]) => age);
-  const values = sortedAgeGroups.map(([,spend]) => spend);
+  const values = sortedAgeGroups.map(([,value]) => value);
 
   // Generate insights
   const insights: string[] = [];
   
-  if (sortedAgeGroups.length > 0 && totalSpend > 0) {
+  if (sortedAgeGroups.length > 0 && totalMetricValue > 0) {
     const topAgeGroup = sortedAgeGroups[0];
-    const topPercentage = ((topAgeGroup[1] / totalSpend) * 100).toFixed(1);
-    insights.push(`🎯 <b>${topAgeGroup[0]}</b> is your top-performing age group, accounting for <b>${topPercentage}%</b> of total spend`);
+    const topPercentage = ((topAgeGroup[1] / totalMetricValue) * 100).toFixed(1);
+    insights.push(`🎯 <b>${topAgeGroup[0]}</b> is your top-performing age group, accounting for <b>${topPercentage}%</b> of total ${primaryMetric}`);
     
     if (sortedAgeGroups.length > 1) {
       const secondAgeGroup = sortedAgeGroups[1];
-      const secondPercentage = ((secondAgeGroup[1] / totalSpend) * 100).toFixed(1);
-      insights.push(`📈 <b>${secondAgeGroup[0]}</b> follows with <b>${secondPercentage}%</b> of spend`);
+      const secondPercentage = ((secondAgeGroup[1] / totalMetricValue) * 100).toFixed(1);
+      insights.push(`📈 <b>${secondAgeGroup[0]}</b> follows with <b>${secondPercentage}%</b> of ${primaryMetric}`);
     }
   } else {
-    insights.push('No spend data available for analysis');
+    insights.push(`No ${primaryMetric} data available for analysis`);
   }
 
   return {
@@ -114,7 +226,7 @@ function processCleanedData(cleanedDataPoints: DataPoint[]): { insights: string[
     chartData: {
       labels,
       values,
-      title: 'Spend by Age Group',
+      title: chartTitle,
       type: 'bar'
     }
   };
