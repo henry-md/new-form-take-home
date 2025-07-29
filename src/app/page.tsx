@@ -130,6 +130,21 @@ export default function Home() {
                           🕒 Scheduled: {formatCadence(config.cadence)}
                         </div>
                       )}
+                      
+                      {/* Show latest report link if delivery is link */}
+                      {config.delivery === 'link' && config.generatedReports && config.generatedReports.length > 0 && (
+                        <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                          <a 
+                            href={`/view-report/${config.generatedReports[0].id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            📊 View Latest Report
+                          </a>
+                        </div>
+                      )}
+                      
                       <p className="text-sm text-gray-500">
                         Next Run: {config.cadence !== 'manual' ? 'Scheduled' : 'Manual'}
                       </p>

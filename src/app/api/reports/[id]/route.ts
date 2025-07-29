@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { stopCronJob } from '@/lib/cron-service';
 import { Prisma } from '@prisma/client';
+import { DbGeneratedReport, DbReportConfig } from '@/types/report';
 
 export async function DELETE(
   request: Request,
@@ -31,6 +32,38 @@ export async function DELETE(
     }
     return NextResponse.json(
       { error: 'Failed to delete report configuration' },
+      { status: 500 }
+    );
+  }
+}
+
+// Get a GeneratedReport by id
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    
+    const report: DbGeneratedReport | null = await prisma.generatedReport.findUnique({
+      where: { id },
+      include: {
+        reportConfig: true,
+      },
+    });
+    
+    if (!report) {
+      return NextResponse.json(
+        { error: 'Report not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(report);
+  } catch (error) {
+    console.error('Error fetching report:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch report' },
       { status: 500 }
     );
   }

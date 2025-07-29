@@ -7,7 +7,7 @@ import prisma from '@/lib/db';
 
 // const prisma = new PrismaClient();
 
-// Get all report configurations
+// Get all ReportConfigurations 
 export async function GET() {
   try {
     const configs = await prisma.reportConfig.findMany({

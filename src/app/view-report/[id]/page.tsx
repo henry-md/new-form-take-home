@@ -1,65 +1,91 @@
-import { PrismaClient } from '@prisma/client';
 import { notFound } from 'next/navigation';
+import { formatCadence } from '@/lib/utils';
 import { DbGeneratedReport } from '@/types/report';
+import { getReport } from '@/lib/generated-report';
 
-const prisma = new PrismaClient();
-
-async function getReport(id: string): Promise<DbGeneratedReport> {
-  const report: DbGeneratedReport | null = await prisma.generatedReport.findUnique({
-    where: { id },
-    include: {
-      reportConfig: true,
-    },
-  });
-
-  if (!report) {
+export default async function ViewReport({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
+  let report: DbGeneratedReport;
+  try {
+    report = await getReport(id);
+  } catch (error) {
     notFound();
   }
 
-  return report;
-}
-
-export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const report = await getReport(id);
-  const dataArr = JSON.parse(report.data as string);
-
-  // Assuming report.data is an array of objects
-  const reportData = Array.isArray(dataArr) ? dataArr : [];
-
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">
-        {report.platform.charAt(0).toUpperCase() + report.platform.slice(1)} Report
-      </h1>
-      <p className="text-gray-600 mb-6">
-        Date Range: {report.dateRangeEnum} | Generated on: {new Date(report.createdAt).toLocaleString()}
-      </p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          {/* Header */}
+          <div className="border-b pb-4 mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">
+              📊 {report.reportConfig.platform.charAt(0).toUpperCase() + report.reportConfig.platform.slice(1)} Report
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Generated on {new Date(report.createdAt).toLocaleString()}
+            </p>
+          </div>
 
-      {reportData.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border">
-            <thead className="bg-gray-200">
-              <tr>
-                {Object.keys(reportData[0]).map(key => (
-                  <th key={key} className="py-2 px-4 border-b text-left">{key}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.map((row, index) => (
-                <tr key={index} className="hover:bg-gray-100">
-                  {Object.values(row).map((value, i) => (
-                    <td key={i} className="py-2 px-4 border-b">{String(value)}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* Report Summary */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">🤖 AI Summary</h2>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-gray-800 leading-relaxed">{report.summary}</p>
+            </div>
+          </div>
+
+          {/* Report Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold mb-2">📋 Report Configuration</h3>
+              <div className="space-y-2 text-sm">
+                <p><span className="font-medium">Platform:</span> {report.reportConfig.platform}</p>
+                <p><span className="font-medium">Metrics:</span> {report.reportConfig.metrics.split(',').join(', ')}</p>
+                <p><span className="font-medium">Level:</span> {report.reportConfig.level}</p>
+                <p><span className="font-medium">Date Range:</span> {report.reportConfig.dateRangeEnum}</p>
+                <p><span className="font-medium">Cadence:</span> {formatCadence(report.reportConfig.cadence)}</p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold mb-2">📊 Data Overview</h3>
+              <div className="space-y-2 text-sm">
+                <p><span className="font-medium">Data Points:</span> {Array.isArray(report.data) ? report.data.length : 'N/A'}</p>
+                <p><span className="font-medium">Report Type:</span> Public Link</p>
+                <p><span className="font-medium">Generated:</span> {new Date(report.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Visualization Placeholder */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">📈 Data Visualization</h2>
+            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <p className="text-gray-600 mb-4">Chart visualization would be rendered here</p>
+              <p className="text-sm text-gray-500">
+                In a full implementation, this would show interactive charts and graphs based on the report data.
+              </p>
+            </div>
+          </div>
+
+          {/* Raw Data (for development) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">🔧 Raw Data (Development)</h2>
+              <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-96">
+                <pre className="text-xs">{JSON.stringify(report.data, null, 2)}</pre>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="border-t pt-6 mt-8 text-center text-gray-500 text-sm">
+            <p>Generated by NewForm Scheduled Reports</p>
+            <p className="mt-1">Report ID: {report.id}</p>
+          </div>
         </div>
-      ) : (
-        <p>No data available for this report.</p>
-      )}
+      </div>
     </div>
   );
 } 
