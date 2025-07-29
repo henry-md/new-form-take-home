@@ -70,10 +70,15 @@ const formSchema = z.object({
   }).optional(),
   cadence: z.enum(["manual", "every_minute", "hourly", "every12h", "daily"]),
   delivery: z.enum(["email", "link"]),
-  email: z.string().email("Invalid email").optional(),
+  email: z.string().optional(),
 }).refine(
-  (data) => data.delivery === "link" || !!data.email,
-  { message: "Email is required if delivery is email", path: ["email"] }
+  (data) => {
+    if (data.delivery === "email") {
+      return data.email && data.email.length > 0 && z.string().email().safeParse(data.email).success;
+    }
+    return true;
+  },
+  { message: "Valid email is required when delivery method is email", path: ["email"] }
 ).refine(
   (data) => data.dateRangeEnum !== "custom" || !!data.dateRange,
   { message: "Custom date range is required when Custom Range is selected", path: ["dateRange"] }
@@ -98,7 +103,7 @@ const ReportConfigForm = ({
   defaultValues?: Partial<FormValues>;
 }) => {
   // useForm is a hook that returns a form object with a control, handleSubmit, watch, and formState.
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       platform: "meta",
@@ -108,7 +113,7 @@ const ReportConfigForm = ({
       dateRange: undefined,
       cadence: "manual",
       delivery: "email",
-      email: "",
+      email: undefined,
       ...defaultValues,
     },
   });
@@ -343,7 +348,12 @@ const ReportConfigForm = ({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
+                      <Input 
+                        type="email" 
+                        placeholder="you@example.com" 
+                        {...field}
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -351,8 +361,30 @@ const ReportConfigForm = ({
               />
             )}
 
+            {delivery === "link" && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-2">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <span className="text-blue-500 text-lg">🔗</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      Public Link Selected
+                    </h4>
+                    <p className="text-sm text-blue-700">
+                      Reports will be generated and accessible from your dashboard. 
+                      You&apos;ll receive a shareable link that you can access anytime.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Button type="submit" className="mt-4 w-full">
-              Save & Start
+              {delivery === "link" 
+                ? "📊 Create Report & Generate Link" 
+                : "📧 Save & Start Email Reports"
+              }
             </Button>
           </form>
         </Form>

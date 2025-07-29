@@ -88,7 +88,7 @@ export default function Home() {
                             size="sm"
                             className="bg-blue-50 hover:bg-blue-100"
                           >
-                            ▶️ Run Now
+                            Run Now
                           </Button>
                           <Button
                             onClick={() => deleteReport(config.id)}
@@ -96,7 +96,7 @@ export default function Home() {
                             size="sm"
                             
                           >
-                            🗑️ Delete
+                            Delete
                           </Button>
                         </div>
                       </div>
@@ -124,6 +124,47 @@ export default function Home() {
                         )}
                       </div>
                       
+                      {/* Last Report Section - Prominent */}
+                      <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-base text-gray-900">Last Report</h4>
+                          {config.latestReportId && (
+                            <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
+                              Available
+                            </span>
+                          )}
+                        </div>
+                        
+                        {config.delivery === 'link' ? (
+                          config.latestReportId ? (
+                            <div className="space-y-2">
+                              <div className="text-sm text-gray-600 mb-1">Public URL:</div>
+                              <div className="flex items-center justify-between">
+                                <code className="text-sm bg-gray-100 px-2 py-1 rounded text-blue-600 break-all">
+                                  {typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/view-report/{config.latestReportId}
+                                </code>
+                                <a 
+                                  href={`/view-report/${config.latestReportId}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="ml-2 flex-shrink-0 inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+                                >
+                                  🔗 Open
+                                </a>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-gray-500 italic">
+                              [none] - Click &quot;Run Now&quot; to generate your first report
+                            </div>
+                          )
+                        ) : (
+                          <div className="text-gray-600">
+                            Reports delivered via email to: <span className="font-mono">{config.email}</span>
+                          </div>
+                        )}
+                      </div>
+                      
                       {/* Show active reports */}
                       {config.cadence !== 'manual' && (
                         <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-800">
@@ -131,21 +172,7 @@ export default function Home() {
                         </div>
                       )}
                       
-                      {/* Show latest report link if delivery is link */}
-                      {config.delivery === 'link' && config.generatedReports && config.generatedReports.length > 0 && (
-                        <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-                          <a 
-                            href={`/view-report/${config.generatedReports[0].id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 underline"
-                          >
-                            📊 View Latest Report
-                          </a>
-                        </div>
-                      )}
-                      
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 mt-3">
                         Next Run: {config.cadence !== 'manual' ? 'Scheduled' : 'Manual'}
                       </p>
                     </div>

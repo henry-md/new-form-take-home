@@ -66,4 +66,9 @@ export type DbReportConfigInput = Omit<Prisma.ReportConfigCreateInput, 'generate
 // This generates a precise type based on the schema and the includes.
 export type DbReportConfig = Prisma.ReportConfigGetPayload<typeof reportConfigWithIncludes>;
 
+// Report config type as returned by the API (includes latestReportId)
+export type DbReportConfigWithLatest = Omit<DbReportConfig, 'generatedReports'> & {
+  latestReportId: string | null;
+};
+
 export type DbGeneratedReport = Prisma.GeneratedReportGetPayload<typeof generatedReportWithIncludes>;

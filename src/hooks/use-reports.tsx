@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
+import { DbReportConfigWithLatest } from '@/types/report';
 import type { FormValues } from '@/components/ReportConfigForm';
-import type { DbReportConfig } from '@/types/report';
 import { toast } from 'sonner';
 
-interface ConfirmationState {
+type ConfirmationState = {
   isOpen: boolean;
   action: 'delete' | 'deleteAll' | null;
   configId?: number;
-}
+};
+
 
 export function useReports() {
-  const [reportConfigs, setReportConfigs] = useState<DbReportConfig[]>([]);
+  const [reportConfigs, setReportConfigs] = useState<DbReportConfigWithLatest[]>([]);
   const [confirmation, setConfirmation] = useState<ConfirmationState>({
     isOpen: false,
     action: null,
@@ -20,7 +21,7 @@ export function useReports() {
   const fetchReportConfigs = async () => {
     try {
       const response = await fetch('/api/reports');
-      const data: DbReportConfig[] = await response.json();
+      const data: DbReportConfigWithLatest[] = await response.json();
       if (response.ok) {
         const configsWithDates = data.map(config => ({
           ...config,
@@ -77,6 +78,9 @@ export function useReports() {
         if (!response.ok) {
           throw new Error(result.error || 'Failed to run report');
         }
+        
+        // Refresh the report configs to show the updated latest report
+        await fetchReportConfigs();
         
         return result;
       })(),
