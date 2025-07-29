@@ -3,9 +3,68 @@ import { formatCadence } from '@/lib/utils';
 import { DbGeneratedReport } from '@/types/report';
 import { analyzeData, createSVGChart, createInsightsHTML } from '@/lib/svg-chart';
 import { getReport } from '@/lib/generated-report';
+import { parseSignedUrlParams } from '@/lib/signed-urls';
 
-export default async function ViewReport({ params }: { params: Promise<{ id: string }> }) {
+export default async function ViewReport({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ id: string }>; 
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { id } = await params;
+  const searchParamsResolved = await searchParams;
+  
+  // Check if this is a signed URL and validate it
+  const urlParams = new URLSearchParams();
+  Object.entries(searchParamsResolved).forEach(([key, value]) => {
+    if (typeof value === 'string') {
+      urlParams.set(key, value);
+    }
+  });
+  
+  const signedUrlResult = parseSignedUrlParams(id, urlParams);
+  
+  // If it's a signed URL, validate it
+  if (signedUrlResult) {
+    if (signedUrlResult.isExpired) {
+      return (
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="bg-white rounded-lg shadow-md p-8 text-center">
+              <div className="text-6xl mb-4">⏰</div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Link Expired</h1>
+              <p className="text-gray-600 mb-4">
+                This report link has expired and is no longer accessible.
+              </p>
+              <p className="text-sm text-gray-500">
+                Please request a new report link from the dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    if (!signedUrlResult.isValid) {
+      return (
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="bg-white rounded-lg shadow-md p-8 text-center">
+              <div className="text-6xl mb-4">❌</div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid Link</h1>
+              <p className="text-gray-600 mb-4">
+                This report link is invalid or has been tampered with.
+              </p>
+              <p className="text-sm text-gray-500">
+                Please request a new report link from the dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
   
   let report: DbGeneratedReport;
   try {

@@ -3,6 +3,7 @@ import { scheduleCronJob, stopCronJob } from '@/lib/cron-service';
 import { DbReportConfig, DbReportConfigInput } from '@/types/report';
 import { NextRequest } from 'next/server';
 import { ReportParams } from '@/types/report';
+import { generateFullSignedUrl } from '@/lib/signed-urls';
 import prisma from '@/lib/db';
 
 // const prisma = new PrismaClient();
@@ -24,6 +25,9 @@ export async function GET() {
     const configsWithLatestReport = configs.map(config => ({
       ...config,
       latestReportId: config.generatedReports.length > 0 ? config.generatedReports[0].id : null,
+      signedUrl: config.delivery === 'link' && config.generatedReports.length > 0 
+        ? generateFullSignedUrl({ reportId: config.generatedReports[0].id, expiresInHours: 24 })
+        : null,
     }));
 
     return NextResponse.json(configsWithLatestReport);

@@ -3,10 +3,10 @@ import { Prisma } from '@prisma/client';
 import { sendEmail, createReportEmail } from './email';
 import { fetchReportData } from './api-client';
 import { ReportParams } from '@/types/report';
-import { DbReportConfig } from '@/types/report';
+import { DbReportConfig, DbGeneratedReport } from '@/types/report';
 import prisma from '@/lib/db';
-import { DbGeneratedReport } from '@/types/report';
 import { generateReportSummary } from './openai';
+import { generateFullSignedUrl } from './signed-urls';
 
 export async function buildReportContent(config: DbReportConfig) {
   console.log(`Building report content for config ID: ${config.id}`);
@@ -122,8 +122,12 @@ export const generateAndSendReport = async (config: DbReportConfig) => {
         console.error(`Failed to send email to ${config.email}:`, result.error);
       }
     } else if (config.delivery === 'link') {
-      // Public link is automatically available at /view-report/{generatedReport.id}
-      console.log(`Report available at public link: /view-report/${generatedReport.id}`);
+      // Generate signed URL with 24-hour expiration
+      const signedUrl = generateFullSignedUrl({ 
+        reportId: generatedReport.id,
+        expiresInHours: 24 
+      });
+      console.log(`Report available at signed public link: ${signedUrl}`);
     }
     
     return { success: true };

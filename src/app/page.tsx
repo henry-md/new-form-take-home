@@ -141,10 +141,10 @@ export default function Home() {
                               <div className="text-sm text-gray-600 mb-1">Public URL:</div>
                               <div className="flex items-center justify-between">
                                 <code className="text-sm bg-gray-100 px-2 py-1 rounded text-blue-600 break-all">
-                                  {typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/view-report/{config.latestReportId}
+                                  {config.signedUrl || `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/view-report/${config.latestReportId}`}
                                 </code>
                                 <a 
-                                  href={`/view-report/${config.latestReportId}`}
+                                  href={config.signedUrl || `/view-report/${config.latestReportId}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="ml-2 flex-shrink-0 inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
@@ -152,10 +152,15 @@ export default function Home() {
                                   🔗 Open
                                 </a>
                               </div>
+                              {config.signedUrl && (
+                                <div className="text-xs text-amber-600 mt-1">
+                                  🔒 Secured link expires in 24 hours
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="text-gray-500 italic">
-                              [none] - Click &quot;Run Now&quot; to generate your first report
+                              Click &quot;Run Now&quot; to generate your first report
                             </div>
                           )
                         ) : (

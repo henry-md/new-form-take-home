@@ -69,6 +69,7 @@ export type DbReportConfig = Prisma.ReportConfigGetPayload<typeof reportConfigWi
 // Report config type as returned by the API (includes latestReportId)
 export type DbReportConfigWithLatest = Omit<DbReportConfig, 'generatedReports'> & {
   latestReportId: string | null;
+  signedUrl: string | null;
 };
 
 export type DbGeneratedReport = Prisma.GeneratedReportGetPayload<typeof generatedReportWithIncludes>;
