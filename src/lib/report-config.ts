@@ -72,14 +72,16 @@ export const generateAndSendReport = async (config: DbReportConfig) => {
     
     const { reportData, summary } = await buildReportContent(config);
     
-    // Clean duplicate data objects based on age group and date ranges
-    const cleanedData = removeDuplicateDataObjects(reportData);
+    // Clean duplicate data objects from the data array
+    const dataArray = (reportData as { data?: unknown[] })?.data || [];
+    const cleanedDataArray = removeDuplicateDataObjects(dataArray);
+    const cleanedReportData = { ...reportData, data: cleanedDataArray };
 
     // Generate report and save to db
     const generatedReport: DbGeneratedReport = await prisma.generatedReport.create({
       data: {
         reportConfigId: config.id,
-        data: cleanedData as Prisma.InputJsonValue,
+        data: cleanedReportData as Prisma.InputJsonValue,
         summary: summary,
         platform: config.platform,
         dateRangeEnum: config.dateRangeEnum,
@@ -103,7 +105,7 @@ export const generateAndSendReport = async (config: DbReportConfig) => {
       const emailHtml = createReportEmail({
         platform: config.platform,
         dateRangeEnum: config.dateRangeEnum,
-        data: cleanedData,
+        data: cleanedDataArray,
         summary: summary,
         reportId: generatedReport.id.toString(),
       });

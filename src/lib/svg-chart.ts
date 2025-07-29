@@ -16,8 +16,42 @@ interface DataPoint {
   date_stop?: string;
 }
 
+// Remove duplicate data entries based on age, date_start, and date_stop
+export function removeDuplicateData(data: DataPoint[]): DataPoint[] {
+  if (!Array.isArray(data) || data.length === 0) {
+    return data;
+  }
+
+  const seen = new Map<string, boolean>();
+  const cleanedData: DataPoint[] = [];
+
+  for (const item of data) {
+    // Create a unique key based on age, date_start, and date_stop
+    const age = String(item.age || '');
+    const dateStart = String(item.date_start || '');
+    const dateStop = String(item.date_stop || '');
+    
+    const key = `${age}_${dateStart}_${dateStop}`;
+
+    // Only add the first occurrence of each unique combination
+    if (!seen.has(key)) {
+      seen.set(key, true);
+      cleanedData.push(item);
+    }
+  }
+
+  console.log(`Cleaned data: removed ${data.length - cleanedData.length} duplicate entries`);
+  return cleanedData;
+}
+
 export function analyzeData(data: unknown): { insights: string[], chartData: ChartData } {
-  // Extract the nested data array
+  // Check if data itself is an array
+  if (Array.isArray(data)) {
+    const cleanedDataPoints = removeDuplicateData(data as DataPoint[]);
+    return processCleanedData(cleanedDataPoints);
+  }
+  
+  // Extract the data array from the object
   const dataObj = data as { data?: unknown };
   const actualData = dataObj?.data;
   
@@ -28,9 +62,16 @@ export function analyzeData(data: unknown): { insights: string[], chartData: Cha
     };
   }
 
+  // Clean duplicate data from the data array directly
+  const cleanedDataPoints = removeDuplicateData(actualData as DataPoint[]);
+  
+  return processCleanedData(cleanedDataPoints);
+}
+
+function processCleanedData(cleanedDataPoints: DataPoint[]): { insights: string[], chartData: ChartData } {
   // Extract age groups and their spend
   const ageSpendMap = new Map<string, number>();
-  const totalSpend = actualData.reduce((sum, point: DataPoint) => {
+  const totalSpend = cleanedDataPoints.reduce((sum, point: DataPoint) => {
     let spend = 0;
     if (typeof point.spend === 'string') {
       spend = parseFloat(point.spend) || 0;
@@ -99,11 +140,21 @@ export function createSVGChart(chartData: ChartData, width: number = 600, height
   const barWidth = chartWidth / chartData.labels.length * 0.8;
   const barSpacing = chartWidth / chartData.labels.length;
 
+  // Color gradient based on performance
+  const getBarColor = (value: number, index: number) => {
+    const percentage = value / maxValue;
+    if (percentage > 0.7) return '#10b981'; // Green for top performers
+    if (percentage > 0.4) return '#3b82f6'; // Blue for medium
+    if (percentage > 0.2) return '#f59e0b'; // Orange for lower
+    return '#ef4444'; // Red for lowest
+  };
+
   const bars = chartData.labels.map((label, i) => {
     const value = chartData.values[i];
     const barHeight = (value / maxValue) * chartHeight;
     const x = margin.left + i * barSpacing + (barSpacing - barWidth) / 2;
     const y = margin.top + chartHeight - barHeight;
+    const color = getBarColor(value, i);
     
     const formattedValue = value >= 1000 ? 
       `$${(value / 1000).toFixed(1)}k` : 
@@ -111,7 +162,7 @@ export function createSVGChart(chartData: ChartData, width: number = 600, height
 
     return `
       <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
-            fill="#3b82f6" stroke="#ffffff" stroke-width="2" rx="4"/>
+            fill="${color}" stroke="#ffffff" stroke-width="2" rx="4"/>
       <text x="${x + barWidth/2}" y="${margin.top + chartHeight + 20}" text-anchor="middle" 
             font-size="12" fill="#374151" font-weight="500">${label}</text>
       <text x="${x + barWidth/2}" y="${y - 8}" text-anchor="middle" 

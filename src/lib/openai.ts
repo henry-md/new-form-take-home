@@ -14,6 +14,8 @@ export async function generateReportSummary(
 
     If there is no data in this report, don't make things up: say concisely that there is no data.
 
+    Also be aware that Unknown age group just means we weren't able to get data on what age that user was. Don't think of it as a "secret" group or anything, ideally it's 0 or near-0. Don't draw too much insight from it being small.
+
     Data:
     ${JSON.stringify(reportData, null, 2)}
   `;
