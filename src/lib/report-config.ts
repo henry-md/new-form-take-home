@@ -47,9 +47,9 @@ export const removeDuplicateDataObjects = (data: unknown[]): unknown[] => {
     
     // Create a unique key based on age group and date range
     const itemObj = item as Record<string, unknown>;
-    const ageGroup = String(itemObj.age);
-    const startDate = String(itemObj.date_start);
-    const endDate = String(itemObj.date_end);
+    const ageGroup = String(itemObj.age || 'Unknown');
+    const startDate = String(itemObj.date_start || '');
+    const endDate = String(itemObj.date_stop || '');
     
     const key = `${ageGroup}_${startDate}_${endDate}`;
     
@@ -103,7 +103,7 @@ export const generateAndSendReport = async (config: DbReportConfig) => {
       const emailHtml = createReportEmail({
         platform: config.platform,
         dateRangeEnum: config.dateRangeEnum,
-        data: reportData,
+        data: cleanedData,
         summary: summary,
         reportId: generatedReport.id.toString(),
       });

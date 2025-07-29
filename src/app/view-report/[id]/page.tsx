@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { formatCadence } from '@/lib/utils';
 import { DbGeneratedReport } from '@/types/report';
+import { analyzeData, createSVGChart, createInsightsHTML } from '@/lib/svg-chart';
 import { getReport } from '@/lib/generated-report';
 
 export default async function ViewReport({ params }: { params: Promise<{ id: string }> }) {
@@ -12,6 +13,18 @@ export default async function ViewReport({ params }: { params: Promise<{ id: str
   } catch (error) {
     notFound();
   }
+
+  // Analyze data and generate insights
+  console.log('Report data:', report.data);
+  console.log('Report data type:', typeof report.data);
+  console.log('Report data is array:', Array.isArray(report.data));
+  
+  const { insights, chartData } = analyzeData(report.data);
+  const chartSVG = createSVGChart(chartData);
+  
+  console.log('Chart data:', chartData);
+  console.log('Generated SVG length:', chartSVG.length);
+  console.log('Generated SVG preview:', chartSVG.substring(0, 200) + '...');
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -35,6 +48,43 @@ export default async function ViewReport({ params }: { params: Promise<{ id: str
             </div>
           </div>
 
+          {/* Performance Analysis with Chart */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">📈 Performance Analysis</h2>
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              {chartData.labels.length > 0 ? (
+                <div 
+                  className="flex justify-center"
+                  dangerouslySetInnerHTML={{ __html: chartSVG }}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-2">No data available for visualization</p>
+                  <p className="text-sm text-gray-400">Chart data: {JSON.stringify(chartData)}</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Insights */}
+            {insights.length > 0 && insights[0] !== 'No data available for visualization' ? (
+              <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4">💡 Key Insights</h3>
+                <ul className="space-y-2 text-blue-800">
+                  {insights.map((insight, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span dangerouslySetInnerHTML={{ __html: insight }} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <p className="text-gray-500 text-center">No insights available</p>
+              </div>
+            )}
+          </div>
+
           {/* Report Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-gray-50 rounded-lg p-4">
@@ -55,17 +105,6 @@ export default async function ViewReport({ params }: { params: Promise<{ id: str
                 <p><span className="font-medium">Report Type:</span> Public Link</p>
                 <p><span className="font-medium">Generated:</span> {new Date(report.createdAt).toLocaleDateString()}</p>
               </div>
-            </div>
-          </div>
-
-          {/* Data Visualization Placeholder */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">📈 Data Visualization</h2>
-            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <p className="text-gray-600 mb-4">Chart visualization would be rendered here</p>
-              <p className="text-sm text-gray-500">
-                In a full implementation, this would show interactive charts and graphs based on the report data.
-              </p>
             </div>
           </div>
 
